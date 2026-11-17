@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>뽀용캠</title>
+<title>필름캠</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="뽀용캠">
-<meta name="theme-color" content="#1a1613">
+<meta name="apple-mobile-web-app-title" content="필름캠">
+<meta name="theme-color" content="#161412">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="manifest" href="manifest.json">
 <style>
 :root{
-  --bg:#1a1613; --panel:#231e1a; --text:#fff6ec; --muted:#bfae9c;
-  --accent:#ffc98f; --accent2:#ffb3a1; --chip:#2e2722;
+  --bg:#161412; --panel:#1f1c19; --text:#f6f1ea; --muted:#a99f93;
+  --accent:#e9c48f; --accent2:#d9a27a; --chip:#2b2723;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
@@ -25,12 +25,13 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 .top{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;height:48px}
 .brand{font-weight:700;letter-spacing:.5px;color:var(--accent)}
-.top-btns{display:flex;gap:8px}
-.pill{padding:6px 12px;border-radius:99px;background:var(--chip);font-size:13px;color:var(--muted)}
+.top-btns{display:flex;gap:6px}
+.pill.hq{color:var(--accent);border:1px solid rgba(233,196,143,.4)}
+.pill{padding:6px 11px;border-radius:99px;background:var(--chip);font-size:12px;color:var(--muted);cursor:pointer}
 .pill.on{background:var(--accent);color:#3a2a1c}
 
 .stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#view{max-width:100%;max-height:100%;aspect-ratio:3/4;width:100%;object-fit:contain;display:block;background:#000;border-radius:4px}
+#view{max-width:100%;max-height:100%;aspect-ratio:3/4;width:100%;object-fit:contain;image-rendering:auto;display:block;background:#000;border-radius:4px}
 #video{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0}
 .filter-toast{position:absolute;top:16px;left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:99px;
   background:rgba(0,0,0,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:14px;opacity:0;transition:opacity .3s}
@@ -45,14 +46,16 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .start-card{text-align:center;padding:24px}
 .start-title{font-size:34px;font-weight:700;color:var(--accent);margin-bottom:6px}
 .start p{color:var(--muted);margin:6px 0 22px}
+.start .sub{font-size:12px;margin-top:18px;max-width:260px;margin-left:auto;margin-right:auto;line-height:1.5}
 .start .msg{font-size:13px;line-height:1.5;margin-top:16px;max-width:280px}
 .primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#3a2a1c;font-weight:700;
   padding:14px 28px;border-radius:99px;font-size:16px}
 .ghost{background:var(--chip);padding:14px 24px;border-radius:99px;font-size:16px}
 
 .controls{background:var(--panel);padding:10px 0 12px;border-radius:20px 20px 0 0}
-.adj-tabs{display:flex;justify-content:center;gap:4px;padding:0 12px 6px}
-.adj-tabs button{position:relative;padding:5px 11px;border-radius:99px;font-size:12px;color:var(--muted)}
+.adj-tabs{display:flex;gap:4px;padding:0 12px 6px;overflow-x:auto;scrollbar-width:none}
+.adj-tabs::-webkit-scrollbar{display:none}
+.adj-tabs button{flex:0 0 auto;position:relative;padding:5px 11px;border-radius:99px;font-size:12px;color:var(--muted)}
 .adj-tabs button.active{background:var(--chip);color:var(--text)}
 .adj-tabs button.changed::after{content:"";position:absolute;top:3px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
 .reset{width:26px;height:26px;border-radius:50%;background:var(--chip);color:var(--muted);font-size:14px;line-height:26px;padding:0}
@@ -80,26 +83,38 @@ input[type=range]{flex:1;accent-color:var(--accent);height:24px}
 .review img{max-width:100%;max-height:72dvh;border-radius:6px;-webkit-user-select:auto;-webkit-touch-callout:default}
 .hint{font-size:12px;color:var(--muted);margin:12px 0 16px}
 .review-actions{display:flex;gap:12px}
+
+.back{position:absolute;top:12px;left:12px;padding:6px 12px;border-radius:99px;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:13px;z-index:2}
+.back[hidden]{display:none}
+.chip .sw{width:54px;height:54px}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand">뽀용캠</div>
-    <div class="top-btns"><button id="autoBtn" class="pill">자동밝기 켬</button>
-    <button id="timerBtn" class="pill" aria-label="타이머">타이머 끔</button></div>
+    <div class="brand">필름캠</div>
+    <div class="top-btns">
+      <label class="pill hq" aria-label="기본 카메라로 고화질 촬영">
+        <input id="nativeInput" type="file" accept="image/*" capture="environment" hidden>고화질
+      </label>
+      <button id="autoBtn" class="pill">자동밝기</button>
+      <button id="timerBtn" class="pill" aria-label="타이머">타이머</button>
+    </div>
   </header>
 
   <main class="stage" id="stage">
     <canvas id="view"></canvas>
+    <button id="backBtn" class="back" hidden>✕ 카메라로</button>
     <div id="filterName" class="filter-toast"></div>
     <div id="countdown" class="countdown"></div>
     <div id="flash" class="flash"></div>
     <div id="startScreen" class="start">
       <div class="start-card">
-        <div class="start-title">뽀용캠</div>
-        <p>햇살 같은 필터로 찍어보세요</p>
+        <div class="start-title">필름캠</div>
+        <p>필름처럼, 자연스럽게</p>
         <button id="startBtn" class="primary">카메라 켜기</button>
+        <p class="sub">또는 위의 <b>고화질</b>로 기본 카메라 촬영 · 왼쪽 아래에서 사진 불러오기</p>
         <p id="startMsg" class="msg"></p>
       </div>
     </div>
@@ -107,14 +122,16 @@ input[type=range]{flex:1;accent-color:var(--accent);height:24px}
 
   <section class="controls">
     <div id="adjTabs" class="adj-tabs">
-      <button data-k="amount" class="active">강도</button>
+      <button data-k="amount" class="active">필름</button>
+      <button data-k="grain">노이즈</button>
+      <button data-k="blur">블러</button>
       <button data-k="bright">밝기</button>
       <button data-k="contrast">대비</button>
       <button data-k="sat">채도</button>
       <button data-k="warm">색온도</button>
     </div>
     <div class="slider-row">
-      <button id="adjReset" class="reset" aria-label="이 항목 초기화">↺</button>
+      <button id="adjReset" class="reset" aria-label="이 항목 기본값으로">↺</button>
       <input id="slider" type="range" min="0" max="100" value="100">
       <span id="sliderVal">100</span>
     </div>
@@ -134,75 +151,54 @@ input[type=range]{flex:1;accent-color:var(--accent);height:24px}
 
 <div id="review" class="review" hidden>
   <img id="reviewImg" alt="찍은 사진">
-  <p class="hint">사진을 꾹 눌러도 저장할 수 있어요</p>
+  <p class="hint" id="reviewInfo"></p>
   <div class="review-actions">
-    <button id="retakeBtn" class="ghost">다시 찍기</button>
+    <button id="retakeBtn" class="ghost">돌아가기</button>
     <button id="saveBtn" class="primary">저장하기</button>
   </div>
 </div>
 
 <video id="video" playsinline muted autoplay></video>
 <script>
-// 필터 정의 + WebGL 렌더러
-// temp: +따뜻/-차가움, tint: +분홍/-초록, fade: 검정 띄우기, soft: 뽀얀 확산, glow: 하이라이트 빛번짐
+// 필름캠: 필름 색감 프로필 + WebGL 렌더러
+// 과한 효과 없이 "색만" 자연스럽게 바꾸는 것이 원칙.
+// temp: +따뜻/-차가움, tint: +분홍/-초록, fade: 검정을 살짝 띄움(물빠진 느낌)
+// redSat: 빨강 진하게, skyShift: 파랑을 청록으로, greenDeep/greenTeal: 초록을 깊게/청록으로
 const FILTERS = [
-  { id:'none', name:'원본', group:'', sw:['#999','#666'], p:{} },
+  { id:'none', name:'원본', sw:['#9a9a9a','#5e5e5e'], p:{} },
+  { id:'natural', name:'내추럴', sw:['#d9cbb8','#6f6355'],
+    p:{ contrast:1.04, saturation:1.03, temp:.015 } },
 
-  // ── 뽀용 ──
-  { id:'butter', name:'버터', group:'뽀용', sw:['#fff1c9','#f3c98b'],
-    p:{ exposure:.14, contrast:.97, saturation:.98, temp:.24, tint:.01, fade:.03, glow:.2,
-        highTint:[1.0,.93,.7], highAmt:.3, shadowTint:[.66,.52,.4], shadowAmt:.14, vignette:.08, grain:.015 } },
-  { id:'sunny', name:'햇살', group:'뽀용', sw:['#fff6d6','#ffb878'],
-    p:{ exposure:.1, contrast:1.0, saturation:1.0, temp:.2, tint:.01, fade:.025, glow:.275, leak:.5,
-        highTint:[1.0,.9,.7], highAmt:.2, vignette:.1, grain:.015 } },
-  { id:'wedding', name:'웨딩', group:'뽀용', sw:['#ffffff','#f6dcd6'],
-    p:{ exposure:.26, contrast:.9, saturation:.8, temp:.04, tint:.05, fade:.05, glow:.15,
-        highTint:[1.0,.96,.94], highAmt:.2, shadowTint:[.6,.52,.55], shadowAmt:.15 } },
-  { id:'peach', name:'피치', group:'뽀용', sw:['#ffe3d3','#f7a48f'],
-    p:{ exposure:.12, contrast:.96, saturation:.95, temp:.09, tint:.07, fade:.03, glow:.15,
-        highTint:[1.0,.86,.8], highAmt:.25, vignette:.06 } },
-  { id:'milk', name:'우유', group:'뽀용', sw:['#fbf8f2','#e2dbd0'],
-    p:{ exposure:.3, contrast:.88, saturation:.68, temp:.03, fade:.065, glow:.1,
-        highTint:[1,.98,.95], highAmt:.15 } },
+  // 아그파 비스타 계열: 선명하고 따뜻한 빨강, 청록빛 하늘, 살짝 차가운 그림자
+  { id:'agfa100', name:'아그파 100', sw:['#e2603f','#2f7f93'],
+    p:{ contrast:1.07, saturation:1.05, temp:.05, tint:.005, redSat:.12, skyShift:.32, greenDeep:.08,
+        shadowTint:[.40,.45,.56], shadowAmt:.12, highTint:[1,.96,.88], highAmt:.14, fade:.015 } },
+  { id:'agfa200', name:'아그파 200', sw:['#e8854a','#3d6f86'],
+    p:{ contrast:1.09, saturation:1.03, temp:.09, tint:.02, redSat:.14, skyShift:.26, greenDeep:.05,
+        shadowTint:[.46,.42,.52], shadowAmt:.14, highTint:[1,.93,.8], highAmt:.2, fade:.035 } },
 
-  // ── 리코 GR 스타일 ──
-  { id:'posi', name:'포지티브', group:'리코', sw:['#f2b56b','#2f5a63'],
-    p:{ exposure:.02, contrast:1.25, saturation:1.18, temp:.1, tint:-.01, shadowTint:[.2,.42,.46], shadowAmt:.25,
-        highTint:[1,.88,.66], highAmt:.15, vignette:.38, grain:.035 } },
-  { id:'nega', name:'네거티브', group:'리코', sw:['#d9cfae','#5d7a78'],
-    p:{ exposure:.06, contrast:.88, saturation:.82, temp:-.02, fade:.05, shadowTint:[.32,.5,.52], shadowAmt:.3,
-        highTint:[1,.95,.8], highAmt:.2, vignette:.2, grain:.04 } },
-  { id:'hicon', name:'하이콘 흑백', group:'리코', sw:['#eeeeee','#111111'],
-    p:{ bw:1, exposure:.02, contrast:1.55, vignette:.4, grain:.09 } },
-  { id:'bleach', name:'블리치', group:'리코', sw:['#c9c3b4','#3b3a36'],
-    p:{ exposure:.03, contrast:1.35, saturation:.42, temp:.02, vignette:.3, grain:.05 } },
+  // 코니카 센츄리아 계열: 물빠진 색, 들뜬 검정, 차분한 청록·민트 기운 → 아련한 느낌
+  { id:'konica', name:'코니카', sw:['#c9d3c8','#7d9a98'],
+    p:{ exposure:.04, contrast:.95, saturation:.82, temp:-.03, tint:-.035, redSat:-.12, skyShift:.18, greenTeal:.15,
+        shadowTint:[.40,.52,.52], shadowAmt:.16, highTint:[1,.97,.94], highAmt:.15, fade:.055 } },
 
-  { id:'deep', name:'진득', group:'리코', sw:['#c9733e','#3a2a22'],
-    p:{ exposure:.02, contrast:1.18, saturation:1.22, temp:.12, tint:.01, fade:.015,
-        shadowTint:[.36,.24,.2], shadowAmt:.22, highTint:[1,.86,.62], highAmt:.22, vignette:.3, grain:.03, glow:.06, glowColor:[1,.6,.4] } },
-
-  // ── 영화 필름 ──
-  { id:'cine', name:'시네마', group:'필름', sw:['#f0a35e','#1f4c57'],
-    p:{ contrast:1.12, saturation:1.05, temp:.04, shadowTint:[.12,.4,.46], shadowAmt:.42,
-        highTint:[1,.76,.5], highAmt:.28, fade:.02, vignette:.35, grain:.035, glow:.075, glowColor:[1,.7,.5], letterbox:1 } },
-  { id:'fujimovie', name:'후지 무비', group:'필름', sw:['#8e9a8f','#22302a'],
-    p:{ exposure:-.14, contrast:1.16, saturation:.8, temp:-.03, tint:-.05, fade:.01,
-        shadowTint:[.18,.26,.22], shadowAmt:.35, highTint:[.95,1.0,.95], highAmt:.15,
-        greenDeep:.6, greenTeal:.25, vignette:.25, grain:.035 } },
-  { id:'kodak', name:'코닥 무비', group:'필름', sw:['#f5c582','#7a3d2b'],
-    p:{ exposure:.03, contrast:1.06, saturation:1.08, temp:.13, tint:.02, fade:.03,
-        shadowTint:[.45,.32,.28], shadowAmt:.15, highTint:[1,.88,.68], highAmt:.2,
-        glow:.225, glowColor:[1,.35,.2], vignette:.28, grain:.05 } },
-  { id:'fuji', name:'초록 필름', group:'필름', sw:['#cfdcb8','#3e5a4e'],
-    p:{ exposure:.05, contrast:.95, saturation:.88, temp:-.04, tint:-.04, fade:.04,
-        shadowTint:[.3,.5,.42], shadowAmt:.25, highTint:[.98,.97,.88], highAmt:.15, vignette:.22, grain:.045 } },
-  { id:'night', name:'밤 영화', group:'필름', sw:['#3c6e8c','#d27a4b'],
-    p:{ exposure:.04, contrast:1.18, saturation:1.1, temp:-.08, shadowTint:[.1,.32,.5], shadowAmt:.45,
-        highTint:[1,.72,.5], highAmt:.3, glow:.2, glowColor:[1,.55,.35], vignette:.42, grain:.06, letterbox:1 } },
+  // 그 외 자연스러운 필름들
+  { id:'portra', name:'포트라', sw:['#f0c9a8','#8a6d5c'],
+    p:{ exposure:.03, contrast:.96, saturation:.92, temp:.05, tint:.015, redSat:-.05, skyShift:.1,
+        shadowTint:[.48,.44,.42], shadowAmt:.1, highTint:[1,.95,.88], highAmt:.15, fade:.03 } },
+  { id:'gold', name:'골드', sw:['#f2c14e','#9a5b2e'],
+    p:{ contrast:1.05, saturation:1.05, temp:.13, tint:.01, redSat:.05, skyShift:.05, greenDeep:-.05,
+        shadowTint:[.5,.42,.34], shadowAmt:.1, highTint:[1,.92,.74], highAmt:.22, fade:.025 } },
+  { id:'fujic', name:'후지 C200', sw:['#b9d1b4','#3f6d63'],
+    p:{ contrast:1.02, saturation:.92, temp:-.04, tint:-.03, redSat:-.05, skyShift:.2, greenTeal:.22, greenDeep:.12,
+        shadowTint:[.36,.48,.46], shadowAmt:.18, highTint:[.98,1,.96], highAmt:.1, fade:.03 } },
+  { id:'bw', name:'흑백', sw:['#e6e6e6','#262626'],
+    p:{ bw:1, contrast:1.12, fade:.02 } },
 ];
 
-const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0, soft:0, glow:0, glowColor:[1,.95,.85],
-  leak:0, highTint:[1,1,1], highAmt:0, shadowTint:[.5,.5,.5], shadowAmt:0, vignette:0, grain:0, bw:0, letterbox:0, greenDeep:0, greenTeal:0 };
+const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0,
+  highTint:[1,1,1], highAmt:0, shadowTint:[.5,.5,.5], shadowAmt:0, bw:0,
+  redSat:0, skyShift:0, greenDeep:0, greenTeal:0 };
 
 const VERT = `
 attribute vec2 a_pos; varying vec2 v_uv;
@@ -212,123 +208,119 @@ const FRAG = `
 precision highp float;
 varying vec2 v_uv;
 uniform sampler2D u_tex;
-uniform vec4 u_crop; uniform float u_mirror; uniform float u_aspect; uniform vec2 u_res;
-uniform float u_amount, u_time;
-uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_soft,u_glow,u_leak,u_vignette,u_grain,u_bw,u_highAmt,u_shadowAmt,u_letterbox,u_greenDeep,u_greenTeal;
-uniform vec3 u_highTint,u_shadowTint,u_glowColor;
+uniform vec4 u_crop; uniform float u_mirror; uniform float u_aspect;
+uniform float u_amount, u_seed;
+uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_bw,u_highAmt,u_shadowAmt;
+uniform float u_redSat,u_skyShift,u_greenDeep,u_greenTeal;
+uniform vec3 u_highTint,u_shadowTint;
 uniform float u_autoGain; uniform vec3 u_wb;
-uniform float u_tBright, u_tContrast, u_tSat, u_tWarm;
+uniform float u_tBright,u_tContrast,u_tSat,u_tWarm,u_grain,u_blur;
 
-vec2 src(vec2 uv){ uv.x = mix(uv.x, 1.0-uv.x, u_mirror); return u_crop.xy + clamp(uv,0.0,1.0)*u_crop.zw; }
-// 자동 보정: 조명 색 중화 + 밝기 맞춤 (흰색은 날리지 않고 어두운 곳만 끌어올림)
-vec3 prep(vec3 c){
-  c = clamp(c*u_wb, 0.0, 1.0);
-  float g = u_autoGain;
-  return c*g / (1.0 + (g-1.0)*c);
-}
-vec3 tex(vec2 uv){ return prep(texture2D(u_tex, src(uv)).rgb); }
-float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
 float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
+float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
+vec2 src(vec2 uv){ uv.x = mix(uv.x, 1.0-uv.x, u_mirror); return u_crop.xy + clamp(uv,0.0,1.0)*u_crop.zw; }
+vec3 raw(vec2 uv){ return texture2D(u_tex, src(uv)).rgb; }
+
+// 블러: 원판(보겔) 샘플링 + 픽셀마다 회전 → 렌즈 아웃포커스처럼 부드럽게
+vec3 sampleImg(vec2 uv){
+  if (u_blur < 0.002) return raw(uv);
+  vec2 R = vec2(u_blur*0.009, u_blur*0.009*u_aspect);
+  float rot = hash(floor(gl_FragCoord.xy) + 3.1) * 6.2832;
+  vec3 acc = raw(uv);
+  for (int i = 0; i < 24; i++) {
+    float fi = float(i);
+    float r = sqrt((fi + 0.5) / 24.0);
+    float a = fi * 2.39996 + rot;
+    acc += raw(uv + vec2(cos(a), sin(a)) * r * R);
+  }
+  return acc / 25.0;
+}
+
+// 밝기 곡선: 흰색은 그대로 두고 중간톤 위주로 올리거나 내림
+vec3 gainCurve(vec3 c, float g){ return c*g / (1.0 + (g-1.0)*c); }
+
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+  float a = hash(i + u_seed), b = hash(i + vec2(1.0,0.0) + u_seed);
+  float c = hash(i + vec2(0.0,1.0) + u_seed), d = hash(i + vec2(1.0,1.0) + u_seed);
+  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y);
+}
 
 void main(){
   vec2 uv = v_uv;
-  vec3 orig = tex(uv);
-  vec3 c = orig;
+  // 자동 보정(조명 색, 어두운 장면 밝기)
+  vec3 base = gainCurve(clamp(sampleImg(uv) * u_wb, 0.0, 1.0), u_autoGain);
+  vec3 c = base;
 
-  // 블러 샘플 (뽀얀 확산 + 빛번짐)
-  vec3 blur = vec3(0.0); vec3 bright = vec3(0.0);
-  if (u_soft > 0.0 || u_glow > 0.0) {
-    vec2 r = vec2(0.012, 0.012*u_aspect);
-    for (int i=0;i<12;i++){
-      float a = float(i)*0.5236;
-      vec2 d = vec2(cos(a),sin(a));
-      vec3 s1 = tex(uv + d*r);
-      vec3 s2 = tex(uv + d*r*2.4);
-      blur += s1 + s2;
-      bright += max(s1-0.8,0.0) + max(s2-0.78,0.0)*0.8;
-    }
-    blur /= 24.0; bright /= 12.0;
-    // 밝은 부분만 은은하게 번지는 프로미스트 느낌 (어두운 곳은 선명하게 유지)
-    c += max(blur - c, 0.0) * u_soft * 1.3;
-  }
-
-  // 노출, 색온도, 틴트
-  c *= pow(2.0, u_exposure);
-  c.r += u_temp*0.12; c.b -= u_temp*0.12; c.g += u_temp*0.02;
-  c.r += u_tint*0.05; c.b += u_tint*0.05; c.g -= u_tint*0.06;
-  c = clamp(c,0.0,1.0);
-
-  // 흑백
-  if (u_bw > 0.5) { float l = dot(c, vec3(0.35,0.5,0.15)); c = vec3(l); }
-
-  // 대비 (부드러운 S커브)
-  c = clamp((c-0.5)*u_contrast + 0.5, 0.0, 1.0);
-  vec3 sc = c*c*(3.0-2.0*c);
-  c = u_contrast > 1.0 ? mix(c, sc, min(u_contrast-1.0,1.0)*0.5) : c;
-
-  // 채도
-  float l = luma(c);
-  c = mix(vec3(l), c, u_saturation);
-
-  // 초록을 깊고 차분하게 (후지 계열 녹색)
-  float gn = clamp(c.g - max(c.r, c.b), 0.0, 1.0);
-  c -= gn * u_greenDeep * vec3(0.15, 0.55, 0.1);
-  c.b += gn * u_greenTeal * 0.45; c.r -= gn * u_greenTeal * 0.1;
+  // ── 필름 색 ──
+  c = gainCurve(c, pow(2.0, u_exposure));
+  c.r += u_temp*0.10; c.b -= u_temp*0.10; c.g += u_temp*0.015;
+  c.r += u_tint*0.04; c.b += u_tint*0.04; c.g -= u_tint*0.05;
   c = clamp(c, 0.0, 1.0);
+
+  // 색별 보정
+  float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
+  float chroma = mx - mn;
+  float redness = clamp((c.r - max(c.g, c.b)) * 2.5, 0.0, 1.0);
+  float blueness = clamp((c.b - max(c.r, c.g)) * 3.0, 0.0, 1.0);
+  float greenness = clamp((c.g - max(c.r, c.b)) * 3.0, 0.0, 1.0);
+  float lr = luma(c);
+  c = mix(c, mix(vec3(lr), c, 1.0 + u_redSat), redness);
+  c.g += blueness * u_skyShift * chroma * 0.45; c.r -= blueness * u_skyShift * chroma * 0.15;
+  c -= greenness * u_greenDeep * chroma * vec3(0.2, 0.55, 0.15);
+  c.b += greenness * u_greenTeal * chroma * 0.5; c.r -= greenness * u_greenTeal * chroma * 0.15;
+  c = clamp(c, 0.0, 1.0);
+
+  if (u_bw > 0.5) c = vec3(dot(c, vec3(0.33,0.5,0.17)));
+
+  // 대비: 부드러운 S커브
+  vec3 s = c*c*(3.0-2.0*c);
+  c = u_contrast >= 1.0 ? mix(c, s, (u_contrast-1.0)*2.0) : mix(c, vec3(0.5) + (c-0.5)*0.6, (1.0-u_contrast)*2.5);
+  c = clamp(c, 0.0, 1.0);
+
+  c = mix(vec3(luma(c)), c, u_saturation);
 
   // 스플릿 톤
-  l = luma(c);
-  float hw = smoothstep(0.35,1.0,l), sw = 1.0 - smoothstep(0.0,0.55,l);
-  c = mix(c, c*u_highTint*1.05 + (u_highTint-1.0)*0.1, hw*u_highAmt);
-  c = mix(c, mix(c, u_shadowTint, 0.6), sw*u_shadowAmt);
+  float l = luma(c);
+  float hw = smoothstep(0.45, 1.0, l), sw = 1.0 - smoothstep(0.0, 0.5, l);
+  c = mix(c, c * (u_highTint / max(luma(u_highTint), 0.01)), hw * u_highAmt);
+  c = mix(c, c * (u_shadowTint / max(luma(u_shadowTint), 0.01)), sw * u_shadowAmt);
 
-  // 페이드(검정 띄우기)
-  c = c*(1.0-u_fade) + u_fade*vec3(0.98,0.95,0.92)*0.55;
-
-  // 빛번짐
-  c = 1.0 - (1.0-c)*(1.0 - bright*u_glowColor*u_glow*3.0);
-
-  // 햇살 라이트릭
-  vec2 lp = uv - vec2(0.05, -0.05);
-  lp.y /= u_aspect;
-  float leak = exp(-dot(lp,lp)*3.0);
-  c = 1.0 - (1.0-c)*(1.0 - vec3(1.0,0.78,0.45)*leak*u_leak);
-
-  // 비네팅
-  vec2 vp = uv-0.5;
-  c *= 1.0 - u_vignette*smoothstep(0.25, 0.85, length(vp*vec2(1.0,1.0/u_aspect))*1.25);
-
-  // 그레인
-  float g = hash(floor(gl_FragCoord.xy) + fract(u_time)*100.0) - 0.5;
-  c += g*u_grain*(1.2 - luma(c)*0.6);
-
-  c = clamp(c,0.0,1.0);
-  c = mix(orig, c, u_amount);
-
-  // 세부 조정 (필터 위에 덧입힘)
-  float bg = pow(2.0, u_tBright * 1.3);
-  c = c*bg / (1.0 + (bg-1.0)*c);                       // 밝기: 흰색은 날리지 않고 중간톤 위주
-  c = clamp((c-0.5)*(1.0 + u_tContrast*0.6) + 0.5, 0.0, 1.0);
-  c = mix(vec3(luma(c)), c, 1.0 + u_tSat);
-  c.r += u_tWarm*0.07; c.b -= u_tWarm*0.07; c.g += u_tWarm*0.01;
+  // 물빠진 검정
+  c = u_fade * vec3(0.92, 0.94, 0.95) + c * (1.0 - u_fade);
   c = clamp(c, 0.0, 1.0);
 
-  // 시네마 레터박스 (2.35:1)
-  if (u_letterbox > 0.5) {
-    float bar = u_res.x > u_res.y ? (1.0 - u_res.x / 2.35 / u_res.y) * 0.5 : 0.09;
-    if (uv.y < bar || uv.y > 1.0 - bar) c = vec3(0.0);
+  // 필름 강도
+  c = mix(base, c, u_amount);
+
+  // ── 내가 조정 ──
+  c = gainCurve(c, pow(2.0, u_tBright * 1.2));
+  c = clamp((c-0.5)*(1.0 + u_tContrast*0.5) + 0.5, 0.0, 1.0);
+  c = mix(vec3(luma(c)), c, 1.0 + u_tSat);
+  c.r += u_tWarm*0.06; c.b -= u_tWarm*0.06; c.g += u_tWarm*0.008;
+  c = clamp(c, 0.0, 1.0);
+
+  // 노이즈(필름 입자): 해상도와 상관없이 같은 크기로 보이도록 화면 비율 기준
+  if (u_grain > 0.001) {
+    vec2 gp = uv * vec2(1150.0, 1150.0 / u_aspect);
+    float n = noise(gp) * 0.62 + noise(gp * 2.13 + 7.7) * 0.38 - 0.5;
+    float nc = noise(gp * 0.9 + 31.0) - 0.5;
+    float lw = 0.35 + 2.6 * l * (1.0 - l);
+    c += (vec3(n) + vec3(nc, -nc*0.5, nc*0.2) * 0.25) * u_grain * 0.28 * lw;
+    c = clamp(c, 0.0, 1.0);
   }
-  gl_FragColor = vec4(c,1.0);
+  gl_FragColor = vec4(c, 1.0);
 }`;
 
 class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
-    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
+    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false, antialias: false });
     if (!gl) throw new Error('WebGL을 사용할 수 없어요');
     this.gl = gl;
-    const sh = (type, srcCode) => {
-      const s = gl.createShader(type); gl.shaderSource(s, srcCode); gl.compileShader(s);
+    this.maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    const sh = (type, code) => {
+      const s = gl.createShader(type); gl.shaderSource(s, code); gl.compileShader(s);
       if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
       return s;
     };
@@ -338,7 +330,6 @@ class Renderer {
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
     gl.useProgram(prog);
-    this.prog = prog;
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
@@ -355,26 +346,27 @@ class Renderer {
     const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(prog, i); this.u[info.name] = gl.getUniformLocation(prog, info.name); }
   }
-  // source: video/img/canvas, crop: [x,y,w,h] 0-1, params: filter params
-  render(source, { crop = [0,0,1,1], mirror = false, params = {}, amount = 1, tweak = {}, width, height, auto = { gain: 1, wb: [1,1,1] } }) {
+  // 같은 소스를 여러 번 그릴 땐 upload=false로 텍스처 재업로드 생략
+  render(source, { crop = [0,0,1,1], mirror = false, params = {}, amount = 1, tweak = {}, width, height,
+                   auto = { gain: 1, wb: [1,1,1] }, upload = true, seed = 0 }) {
     const gl = this.gl;
     if (this.canvas.width !== width || this.canvas.height !== height) { this.canvas.width = width; this.canvas.height = height; }
     gl.viewport(0, 0, width, height);
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, source);
+    if (upload) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, source);
     const p = Object.assign({}, DEFAULTS, params);
     const f = (k, v) => this.u[k] && gl.uniform1f(this.u[k], v);
     const v3 = (k, v) => this.u[k] && gl.uniform3fv(this.u[k], v);
     gl.uniform4fv(this.u.u_crop, crop);
-    f('u_autoGain', auto.gain); v3('u_wb', auto.wb);
     f('u_mirror', mirror ? 1 : 0);
     f('u_aspect', width / height);
-    gl.uniform2f(this.u.u_res, width, height);
     f('u_amount', amount);
-    f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0); f('u_tWarm', tweak.warm || 0);
-    f('u_time', performance.now() / 1000);
-    for (const k of ['exposure','contrast','saturation','temp','tint','fade','soft','glow','leak','vignette','grain','bw','highAmt','shadowAmt','letterbox','greenDeep','greenTeal']) f('u_' + k, p[k]);
-    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_glowColor', p.glowColor);
+    f('u_seed', seed);
+    f('u_autoGain', auto.gain); v3('u_wb', auto.wb);
+    f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0);
+    f('u_tWarm', tweak.warm || 0); f('u_grain', tweak.grain || 0); f('u_blur', tweak.blur || 0);
+    for (const k of ['exposure','contrast','saturation','temp','tint','fade','bw','highAmt','shadowAmt','redSat','skyShift','greenDeep','greenTeal']) f('u_' + k, p[k]);
+    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
@@ -384,8 +376,8 @@ class Renderer {
   const $ = (id) => document.getElementById(id);
   const view = $('view'), video = $('video');
   const store = {
-    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    get(k, d) { try { const v = localStorage.getItem('fc_' + k); return v === null ? d : v; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('fc_' + k, v); } catch {} },
   };
 
   let renderer;
@@ -393,22 +385,30 @@ class Renderer {
   catch (e) { $('startMsg').textContent = '이 기기에서는 필터를 실행할 수 없어요: ' + e.message; return; }
   let capRenderer = null;
 
+  // iOS Safari 캔버스 한도(약 1,670만 화소)와 GPU 텍스처 한도 안에서 최대한 원본 화소 유지
+  const MAX_PIXELS = 16_000_000;
+  const MAX_SIDE = Math.min(renderer.maxTex || 4096, 8192);
+  function fitFull(w, h) {
+    let s = Math.min(1, MAX_SIDE / Math.max(w, h), Math.sqrt(MAX_PIXELS / (w * h)));
+    return [Math.round(w * s), Math.round(h * s)];
+  }
+  function fit(w, h, max) { const s = Math.min(1, max / Math.max(w, h)); return [Math.round(w * s), Math.round(h * s)]; }
+
   const state = {
     mode: 'camera',          // 'camera' | 'photo'
     facing: store.get('facing', 'environment'),
-    filter: FILTERS.find(f => f.id === store.get('filter', 'butter')) || FILTERS[1],
-    amount: 1,
+    filter: FILTERS.find(f => f.id === store.get('filter', 'agfa100')) || FILTERS[2],
+    amount: 1, tweak: {},
     timer: 0,
     stream: null,
-    photo: null,             // 불러온 사진 (canvas)
+    photo: null,
     busy: false,
     autoOn: store.get('auto', '1') === '1',
     auto: { gain: 1, wb: [1, 1, 1] },
+    seed: Math.random() * 100,
   };
 
-  // ── 자동 밝기/색 보정 ──
-  // 장면을 아주 작게 줄여 평균 밝기와 조명 색을 재고, 필터 전에 보정해서
-  // 실내/조명 아래에서도 야외와 비슷한 밝기·색으로 필터가 입혀지게 함
+  // ── 자동 밝기/색: 어두운 장면과 강한 조명색만 살짝 보정 (밝은 장면은 그대로) ──
   const probe = document.createElement('canvas'); probe.width = 32; probe.height = 32;
   const pctx = probe.getContext('2d', { willReadFrequently: true });
   function measure(source, sw, sh) {
@@ -418,27 +418,24 @@ class Renderer {
     for (let i = 0; i < d.length; i += 4) {
       const R = d[i] / 255, G = d[i+1] / 255, B = d[i+2] / 255;
       const L = 0.299*R + 0.587*G + 0.114*B; lum.push(L);
-      if (L > 0.06 && L < 0.94) { r += R; g += G; b += B; n++; } // 너무 어둡거나 날아간 곳은 색 측정에서 제외
+      if (L > 0.06 && L < 0.94) { r += R; g += G; b += B; n++; }
     }
     lum.sort((x, y) => x - y);
     const median = Math.max(lum[lum.length >> 1], 0.02);
-    // 밝기: 곡선 보정 후 중간 밝기가 0.45가 되도록 (밝은 부분은 곡선이 알아서 보호)
-    const T = 0.45;
-    let gain = T * (1 - median) / (median * (1 - T));
-    gain = Math.max(0.9, Math.min(gain, 6));
-    // 조명 색: 주황(전구색)/파랑 조명이 강할 때만 그 초과분을 줄임. 자연광은 거의 그대로 둠
+    let gain = 1;
+    if (median < 0.3) { const T = 0.36; gain = Math.min(2.2, T * (1 - median) / (median * (1 - T))); }
     let wb = [1, 1, 1];
     if (n > 20) {
       const rb = r / b;
       let target = rb;
-      if (rb > 1.15) target = 1.15 + (rb - 1.15) * 0.3;
-      else if (rb < 0.85) target = 0.85 - (0.85 - rb) * 0.3;
+      if (rb > 1.3) target = 1.3 + (rb - 1.3) * 0.4;
+      else if (rb < 0.8) target = 0.8 - (0.8 - rb) * 0.4;
       const k = Math.sqrt(target / rb);
       wb = [k, 1, 1 / k];
-      const gr = g / ((r * k + b / k) / 2);   // 형광등 초록끼
-      if (gr > 1.15) wb[1] = (1.15 + (gr - 1.15) * 0.3) / gr;
+      const gr = g / ((r * k + b / k) / 2);
+      if (gr > 1.2) wb[1] = (1.2 + (gr - 1.2) * 0.4) / gr;
       const norm = 3 / (wb[0] + wb[1] + wb[2]);
-      wb = wb.map(v => Math.max(0.6, Math.min(1.5, v * norm)));
+      wb = wb.map(v => Math.max(0.7, Math.min(1.4, v * norm)));
     }
     return { gain, wb };
   }
@@ -449,57 +446,48 @@ class Renderer {
   }
   const NO_AUTO = { gain: 1, wb: [1, 1, 1] };
   const curAuto = () => state.autoOn ? state.auto : NO_AUTO;
-  $('autoBtn').classList.toggle('on', state.autoOn);
+  function syncAutoBtn() { $('autoBtn').classList.toggle('on', state.autoOn); $('autoBtn').textContent = state.autoOn ? '자동밝기 켬' : '자동밝기 끔'; }
+  syncAutoBtn();
   $('autoBtn').onclick = () => {
-    state.autoOn = !state.autoOn; store.set('auto', state.autoOn ? '1' : '0');
-    $('autoBtn').classList.toggle('on', state.autoOn);
-    $('autoBtn').textContent = state.autoOn ? '자동밝기 켬' : '자동밝기 끔';
-    if (state.mode === 'photo') drawPhoto();
+    state.autoOn = !state.autoOn; store.set('auto', state.autoOn ? '1' : '0'); syncAutoBtn(); redraw();
   };
-  $('autoBtn').textContent = state.autoOn ? '자동밝기 켬' : '자동밝기 끔';
 
-  // ── 필터 목록 ──
+  // ── 필름 목록 ──
   const list = $('filters');
-  let lastGroup = null;
   FILTERS.forEach(f => {
     const b = document.createElement('button');
     b.className = 'chip'; b.dataset.id = f.id;
-    b.innerHTML = `<span class="sw" style="background:linear-gradient(135deg,${f.sw[0]},${f.sw[1]})"></span>${f.name}` +
-      `<span class="grp">${f.group !== lastGroup ? f.group : '&nbsp;'}</span>`;
-    lastGroup = f.group;
+    b.innerHTML = `<span class="sw" style="background:linear-gradient(135deg,${f.sw[0]},${f.sw[1]})"></span>${f.name}`;
     b.onclick = () => selectFilter(f);
     list.appendChild(b);
   });
-
   let toastTimer;
   function selectFilter(f, scroll = true) {
     state.filter = f; store.set('filter', f.id);
     list.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.id === f.id));
     const el = list.querySelector(`[data-id="${f.id}"]`);
     if (scroll && el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-    const t = $('filterName'); t.textContent = (f.group ? f.group + ' · ' : '') + f.name; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1200);
-    if (state.mode === 'photo') drawPhoto();
+    const t = $('filterName'); t.textContent = f.name; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1100);
+    redraw();
   }
   selectFilter(state.filter, false);
 
-  // 화면 좌우로 밀어서 필터 바꾸기
+  // 화면 좌우로 밀어서 필름 바꾸기
   let sx = null, sy = null;
   $('stage').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   $('stage').addEventListener('touchend', e => {
     if (sx === null) return;
-    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-    sx = null;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       const i = FILTERS.indexOf(state.filter);
-      const n = (i + (dx < 0 ? 1 : -1) + FILTERS.length) % FILTERS.length;
-      selectFilter(FILTERS[n]);
+      selectFilter(FILTERS[(i + (dx < 0 ? 1 : -1) + FILTERS.length) % FILTERS.length]);
     }
   });
 
-  // ── 세부 조정: 강도 / 밝기 / 대비 / 채도 / 색온도 ──
-  // 필터(기본값) 위에 덧입혀지는 조정. 강도 0~100(기본 100), 나머지 -100~100(기본 0)
-  const ADJ = { amount: [0, 100, 100], bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
+  // ── 조정: 필름 강도 / 노이즈 / 블러 / 밝기 / 대비 / 채도 / 색온도 ──
+  const ADJ = { amount: [0, 100, 100], grain: [0, 100, 20], blur: [0, 100, 0],
+    bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
   const adj = {};
   for (const k in ADJ) { const v = Number(store.get('adj_' + k, ADJ[k][2])); adj[k] = isFinite(v) ? v : ADJ[k][2]; }
   let adjKey = 'amount';
@@ -507,7 +495,7 @@ class Renderer {
   function syncSlider() {
     const [mn, mx] = ADJ[adjKey];
     slider.min = mn; slider.max = mx; slider.value = adj[adjKey];
-    $('sliderVal').textContent = adj[adjKey] > 0 && adjKey !== 'amount' ? '+' + adj[adjKey] : adj[adjKey];
+    $('sliderVal').textContent = mn < 0 && adj[adjKey] > 0 ? '+' + adj[adjKey] : adj[adjKey];
     $('adjTabs').querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.k === adjKey);
       b.classList.toggle('changed', adj[b.dataset.k] !== ADJ[b.dataset.k][2]);
@@ -515,8 +503,9 @@ class Renderer {
   }
   function applyAdj() {
     state.amount = adj.amount / 100;
-    state.tweak = { bright: adj.bright / 100, contrast: adj.contrast / 100, sat: adj.sat / 100, warm: adj.warm / 100 };
-    if (state.mode === 'photo') drawPhoto();
+    state.tweak = { bright: adj.bright / 100, contrast: adj.contrast / 100, sat: adj.sat / 100, warm: adj.warm / 100,
+                    grain: adj.grain / 100, blur: adj.blur / 100 };
+    redraw();
   }
   $('adjTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) { adjKey = b.dataset.k; syncSlider(); } };
   slider.oninput = () => { adj[adjKey] = Number(slider.value); store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
@@ -527,18 +516,18 @@ class Renderer {
   const timers = [0, 3, 10];
   $('timerBtn').onclick = () => {
     state.timer = timers[(timers.indexOf(state.timer) + 1) % timers.length];
-    $('timerBtn').textContent = state.timer ? `타이머 ${state.timer}초` : '타이머 끔';
+    $('timerBtn').textContent = state.timer ? `타이머 ${state.timer}초` : '타이머';
     $('timerBtn').classList.toggle('on', !!state.timer);
   };
 
-  // ── 카메라 ──
+  // ── 실시간 카메라 ──
   async function startCamera() {
     stopCamera();
     $('startMsg').textContent = '';
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: state.facing, width: { ideal: 2560 }, height: { ideal: 1920 } },
+        video: { facingMode: state.facing, width: { ideal: 4032 }, height: { ideal: 3024 } },
       });
       state.stream = stream;
       video.srcObject = stream;
@@ -553,16 +542,14 @@ class Renderer {
         : '카메라를 열 수 없어요. (' + (e && e.message || e) + ')';
     }
   }
-  function stopCamera() {
-    if (state.stream) state.stream.getTracks().forEach(t => t.stop());
-    state.stream = null;
-  }
+  function stopCamera() { if (state.stream) state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
   $('startBtn').onclick = startCamera;
   $('flipBtn').onclick = () => {
     state.facing = state.facing === 'user' ? 'environment' : 'user';
     store.set('facing', state.facing);
     startCamera();
   };
+  $('backBtn').onclick = () => { state.photo = null; startCamera(); };
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state.mode === 'camera' && store.get('camOk') === '1') {
       const live = state.stream && state.stream.getVideoTracks().some(t => t.readyState === 'live');
@@ -570,25 +557,24 @@ class Renderer {
     }
   });
 
-  // 3:4 세로 비율로 자르기
+  // 3:4 비율로 맞추기 (카메라가 4:3 그대로 주면 자르지 않음)
   function cameraCrop() {
     const vw = video.videoWidth, vh = video.videoHeight;
-    const target = 3 / 4;
+    const portrait = vh >= vw, target = portrait ? 3 / 4 : 4 / 3;
     let w = vw, h = vh;
     if (vw / vh > target) w = vh * target; else h = vw / target;
     return { crop: [(1 - w / vw) / 2, (1 - h / vh) / 2, w / vw, h / vh], w: Math.round(w), h: Math.round(h) };
   }
-  function fit(w, h, max) { const s = Math.min(1, max / Math.max(w, h)); return [Math.round(w * s), Math.round(h * s)]; }
 
   let frame = 0;
   function loop() {
     if (state.mode === 'camera' && video.readyState >= 2 && video.videoWidth) {
       const { crop, w, h } = cameraCrop();
-      if (state.autoOn && frame++ % 6 === 0) {
-        try { smoothAuto(measure(video, video.videoWidth, video.videoHeight), 0.25); } catch {}
-      }
-      const [pw, ph] = fit(w, h, 1280);
-      renderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
+      if (state.autoOn && frame++ % 6 === 0) { try { smoothAuto(measure(video, video.videoWidth, video.videoHeight), 0.25); } catch {} }
+      const [pw, ph] = fit(w, h, 1440);
+      view.style.aspectRatio = `${pw}/${ph}`;
+      renderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount,
+        tweak: state.tweak, width: pw, height: ph, auto: curAuto(), seed: state.seed });
     }
     requestAnimationFrame(loop);
   }
@@ -598,27 +584,30 @@ class Renderer {
     state.mode = m;
     $('shutter').classList.toggle('import', m === 'photo');
     $('shutter').setAttribute('aria-label', m === 'photo' ? '저장' : '촬영');
-    if (m === 'camera') { view.style.aspectRatio = '3/4'; }
+    $('backBtn').hidden = m !== 'photo';
   }
 
-  // ── 사진 불러오기 ──
-  $('fileInput').onchange = async (e) => {
-    const file = e.target.files[0]; e.target.value = '';
+  // ── 사진: 앨범 불러오기 / 기본 카메라 고화질 촬영 ──
+  async function openPhoto(file) {
     if (!file) return;
     try {
       const img = await loadImage(file);
-      const [w, h] = fit(img.naturalWidth || img.width, img.naturalHeight || img.height, 4096);
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const [w, h] = fitFull(iw, ih);
       const c = document.createElement('canvas'); c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-      state.photo = c;
-      const m = measure(c, w, h); state.auto = m;
+      state.photo = { canvas: c, origW: iw, origH: ih };
+      state.auto = measure(c, w, h);
       stopCamera();
       $('startScreen').hidden = true;
       setMode('photo');
       view.style.aspectRatio = `${w}/${h}`;
-      drawPhoto();
+      photoUploaded = false;
+      redraw();
     } catch (err) { alert('사진을 불러올 수 없어요'); }
-  };
+  }
+  $('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; openPhoto(f); };
+  $('nativeInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; openPhoto(f); };
   function loadImage(file) {
     return new Promise((res, rej) => {
       const url = URL.createObjectURL(file);
@@ -627,23 +616,39 @@ class Renderer {
       img.onerror = rej; img.src = url;
     });
   }
-  function drawPhoto() {
-    const p = state.photo; if (!p) return;
-    const [pw, ph] = fit(p.width, p.height, 1600);
-    renderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
+
+  // 사진 미리보기: 화면용 크기로 줄인 사본을 한 번만 올리고, 조정할 때마다 다시 그림
+  let photoUploaded = false, previewSrc = null, rafPending = false;
+  function redraw() {
+    if (state.mode !== 'photo' || !state.photo || rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      const p = state.photo.canvas;
+      const [pw, ph] = fit(p.width, p.height, 1600);
+      if (!photoUploaded) {
+        previewSrc = document.createElement('canvas'); previewSrc.width = pw; previewSrc.height = ph;
+        previewSrc.getContext('2d').drawImage(p, 0, 0, pw, ph);
+      }
+      renderer.render(previewSrc, { params: state.filter.p, amount: state.amount, tweak: state.tweak,
+        width: pw, height: ph, auto: curAuto(), upload: !photoUploaded, seed: state.seed });
+      photoUploaded = true;
+    });
   }
 
-  // ── 촬영/저장 ──
+  // ── 촬영 / 저장 ──
   $('shutter').onclick = async () => {
     if (state.busy) return;
     if (state.mode === 'camera' && !state.stream) { startCamera(); return; }
     state.busy = true;
     try {
       if (state.mode === 'camera' && state.timer) await countdown(state.timer);
-      flash();
-      const blob = await captureBlob();
-      showReview(blob);
-    } finally { state.busy = false; }
+      if (state.mode === 'camera') flash();
+      await new Promise(r => setTimeout(r, 30));
+      const out = await captureBlob();
+      showReview(out);
+    } catch (e) { alert('저장용 사진을 만들지 못했어요: ' + (e && e.message || e)); }
+    finally { state.busy = false; }
   };
   function countdown(n) {
     return new Promise(res => {
@@ -656,30 +661,37 @@ class Renderer {
 
   function captureBlob() {
     if (!capRenderer) capRenderer = new Renderer(document.createElement('canvas'));
+    let w, h, info;
     if (state.mode === 'camera') {
-      const { crop, w, h } = cameraCrop();
-      const [cw, ch] = fit(w, h, 4096);
-      capRenderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: cw, height: ch, auto: curAuto() });
+      const c = cameraCrop();
+      [w, h] = fitFull(c.w, c.h);
+      capRenderer.render(video, { crop: c.crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount,
+        tweak: state.tweak, width: w, height: h, auto: curAuto(), seed: state.seed });
+      info = `${w}×${h} · 실시간 카메라`;
     } else {
       const p = state.photo;
-      capRenderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: p.width, height: p.height, auto: curAuto() });
+      w = p.canvas.width; h = p.canvas.height;
+      capRenderer.render(p.canvas, { params: state.filter.p, amount: state.amount, tweak: state.tweak,
+        width: w, height: h, auto: curAuto(), seed: state.seed });
+      info = `${w}×${h}` + (w < p.origW ? ` (원본 ${p.origW}×${p.origH}, 브라우저 한도로 조정)` : ' · 원본 화소 그대로');
     }
-    return new Promise(res => capRenderer.canvas.toBlob(res, 'image/jpeg', 0.93));
+    return new Promise((res, rej) => capRenderer.canvas.toBlob(b => b ? res({ blob: b, info }) : rej(new Error('메모리 부족')), 'image/jpeg', 0.95));
   }
 
   let currentBlob = null, currentUrl = null;
-  function showReview(blob) {
+  function showReview({ blob, info }) {
     currentBlob = blob;
     if (currentUrl) URL.revokeObjectURL(currentUrl);
     currentUrl = URL.createObjectURL(blob);
     $('reviewImg').src = currentUrl;
+    $('reviewInfo').textContent = `${info} · ${(blob.size / 1e6).toFixed(1)}MB · 사진을 꾹 눌러도 저장돼요`;
     $('review').hidden = false;
   }
   $('retakeBtn').onclick = () => { $('review').hidden = true; };
   $('saveBtn').onclick = async () => {
     if (!currentBlob) return;
     const d = new Date(), pad = (x) => String(x).padStart(2, '0');
-    const name = `ppoyong_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.jpg`;
+    const name = `filmcam_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.jpg`;
     const file = new File([currentBlob], name, { type: 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file] }); } catch (e) { /* 취소 */ }
@@ -688,7 +700,6 @@ class Renderer {
     }
   };
 
-  // 시작
   if (store.get('camOk') === '1') startCamera();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

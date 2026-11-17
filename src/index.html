@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>뽀용캠</title>
+<title>필름캠</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="뽀용캠">
-<meta name="theme-color" content="#1a1613">
+<meta name="apple-mobile-web-app-title" content="필름캠">
+<meta name="theme-color" content="#161412">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="manifest" href="manifest.json">
 <!--STYLE-->
@@ -16,21 +16,28 @@
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand">뽀용캠</div>
-    <div class="top-btns"><button id="autoBtn" class="pill">자동밝기 켬</button>
-    <button id="timerBtn" class="pill" aria-label="타이머">타이머 끔</button></div>
+    <div class="brand">필름캠</div>
+    <div class="top-btns">
+      <label class="pill hq" aria-label="기본 카메라로 고화질 촬영">
+        <input id="nativeInput" type="file" accept="image/*" capture="environment" hidden>고화질
+      </label>
+      <button id="autoBtn" class="pill">자동밝기</button>
+      <button id="timerBtn" class="pill" aria-label="타이머">타이머</button>
+    </div>
   </header>
 
   <main class="stage" id="stage">
     <canvas id="view"></canvas>
+    <button id="backBtn" class="back" hidden>✕ 카메라로</button>
     <div id="filterName" class="filter-toast"></div>
     <div id="countdown" class="countdown"></div>
     <div id="flash" class="flash"></div>
     <div id="startScreen" class="start">
       <div class="start-card">
-        <div class="start-title">뽀용캠</div>
-        <p>햇살 같은 필터로 찍어보세요</p>
+        <div class="start-title">필름캠</div>
+        <p>필름처럼, 자연스럽게</p>
         <button id="startBtn" class="primary">카메라 켜기</button>
+        <p class="sub">또는 위의 <b>고화질</b>로 기본 카메라 촬영 · 왼쪽 아래에서 사진 불러오기</p>
         <p id="startMsg" class="msg"></p>
       </div>
     </div>
@@ -38,14 +45,16 @@
 
   <section class="controls">
     <div id="adjTabs" class="adj-tabs">
-      <button data-k="amount" class="active">강도</button>
+      <button data-k="amount" class="active">필름</button>
+      <button data-k="grain">노이즈</button>
+      <button data-k="blur">블러</button>
       <button data-k="bright">밝기</button>
       <button data-k="contrast">대비</button>
       <button data-k="sat">채도</button>
       <button data-k="warm">색온도</button>
     </div>
     <div class="slider-row">
-      <button id="adjReset" class="reset" aria-label="이 항목 초기화">↺</button>
+      <button id="adjReset" class="reset" aria-label="이 항목 기본값으로">↺</button>
       <input id="slider" type="range" min="0" max="100" value="100">
       <span id="sliderVal">100</span>
     </div>
@@ -65,9 +74,9 @@
 
 <div id="review" class="review" hidden>
   <img id="reviewImg" alt="찍은 사진">
-  <p class="hint">사진을 꾹 눌러도 저장할 수 있어요</p>
+  <p class="hint" id="reviewInfo"></p>
   <div class="review-actions">
-    <button id="retakeBtn" class="ghost">다시 찍기</button>
+    <button id="retakeBtn" class="ghost">돌아가기</button>
     <button id="saveBtn" class="primary">저장하기</button>
   </div>
 </div>
