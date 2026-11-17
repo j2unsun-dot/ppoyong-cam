@@ -23,7 +23,11 @@ const FILTERS = [
   // 후지 카메라(X-T30 II) 레시피: ASTIA/소프트(온화한 색상과 대비) 기반 + 6000K + WB 시프트 R+2 B+3 + 그림자 -0.5 + 그레인 약하게
   // 6000K: 일광(약 5500K)보다 살짝 따뜻하게 → R×1.04, B×0.955 / R+2 B+3 시프트 → R×1.03, B×1.045
   { id:'fujirecipe', name:'후지 레시피', sw:['#f4c9c0','#5f7f95'], grain:15,
-    p:{ wbGain:[1.071,1.0,0.998], shadowTone:-0.5, contrast:.95, saturation:1.02, redSat:-.04, skyShift:.06 } },
+    // 공유해 준 레시피 사진(빨간 체크·토마토·노란 모자) 실측: 중간톤만 살짝 따뜻한 분홍, 흰색·검정은 거의 중립
+    p:{ toneS:[1.0,1.0,1.0], toneM:[1.045,.985,.97], toneH:[1.0,1.0,1.005], shadowTone:-0.5, contrast:.97, saturation:1.02, redSat:-.03 } },
+  { id:'fujimood', name:'후지 무드', sw:['#e0a27a','#2d4f57'], grain:25,
+    // 공유해 준 사진(제복 입은 두 인형) 실측: 청록 그림자 + 따뜻한 하이라이트, 낮은 키
+    p:{ toneS:[.86,1.07,1.07], toneM:[1.04,1.0,.955], toneH:[1.11,.99,.9], exposure:-.08, contrast:1.06, saturation:.95, fade:.02, fadeColor:[.85,.97,1.0] } },
 
   // 그 외 자연스러운 필름들
   { id:'portra', name:'포트라', sw:['#f0c9a8','#8a6d5c'],
