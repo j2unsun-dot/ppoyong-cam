@@ -32,6 +32,8 @@
     autoOn: store.get('auto', '1') === '1',
     auto: { gain: 1, wb: [1, 1, 1] },
     seed: Math.random() * 100,
+    zoom: 1,            // 현재 배율
+    zoomHW: null,       // 카메라가 지원하는 실제(렌즈) 줌 범위 {min,max}. 없으면 화면 확대(디지털)
   };
 
   // ── 자동 밝기/색: 어두운 장면과 강한 조명색만 살짝 보정 (밝은 장면은 그대로) ──
@@ -101,9 +103,9 @@
 
   // 화면 좌우로 밀어서 필름 바꾸기
   let sx = null, sy = null;
-  $('stage').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  $('stage').addEventListener('touchstart', e => { if (e.touches.length > 1) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   $('stage').addEventListener('touchend', e => {
-    if (sx === null) return;
+    if (sx === null || pinch || e.touches.length > 0) { sx = null; return; }
     const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       const i = FILTERS.indexOf(state.filter);
@@ -160,6 +162,7 @@
       await video.play();
       $('startScreen').hidden = true;
       store.set('camOk', '1');
+      setupZoom();
       setMode('camera');
     } catch (e) {
       $('startScreen').hidden = false;
@@ -183,12 +186,77 @@
     }
   });
 
+  // ── 확대/축소 ──
+  // iOS 17 이상 Safari처럼 카메라 줌을 지원하면 렌즈 줌(화질 유지), 아니면 가운데를 잘라 확대(화질 낮아짐)
+  const zoomBar = $('zoomBar');
+  let zoomApplying = false, zoomPending = null;
+  function zoomRange() { return state.zoomHW || { min: 1, max: 5 }; }
+  function setupZoom() {
+    state.zoomHW = null;
+    const track = state.stream && state.stream.getVideoTracks()[0];
+    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+    if (caps.zoom && caps.zoom.max > caps.zoom.min) state.zoomHW = { min: caps.zoom.min, max: Math.min(caps.zoom.max, 10) };
+    const r = zoomRange();
+    const presets = [0.5, 1, 2, 3].filter(z => z >= r.min - 1e-6 && z <= r.max + 1e-6);
+    zoomBar.innerHTML = presets.map(z => `<button data-z="${z}">${z}×</button>`).join('');
+    setZoom(Math.max(r.min, Math.min(r.max, 1)));
+  }
+  zoomBar.onclick = (e) => { const b = e.target.closest('button'); if (b) setZoom(Number(b.dataset.z)); };
+  function setZoom(z) {
+    const r = zoomRange();
+    z = Math.max(r.min, Math.min(r.max, z));
+    state.zoom = z;
+    // 버튼 표시: 가까운 프리셋을 강조, 사이 값이면 현재 배율을 보여줌
+    let shown = false;
+    zoomBar.querySelectorAll('button').forEach(b => {
+      const bz = Number(b.dataset.z);
+      const near = Math.abs(bz - z) < 0.05;
+      b.classList.toggle('on', near);
+      b.textContent = near ? `${bz}×` : `${bz}×`;
+      if (near) shown = true;
+    });
+    if (!shown) {
+      const btns = [...zoomBar.querySelectorAll('button')];
+      const below = btns.filter(b => Number(b.dataset.z) <= z).pop();
+      if (below) { below.classList.add('on'); below.textContent = `${z.toFixed(1)}×`; }
+    }
+    if (state.zoomHW) applyHWZoom(z);
+  }
+  async function applyHWZoom(z) {
+    if (zoomApplying) { zoomPending = z; return; }
+    zoomApplying = true;
+    try {
+      const track = state.stream && state.stream.getVideoTracks()[0];
+      if (track) await track.applyConstraints({ advanced: [{ zoom: z }] });
+    } catch {}
+    zoomApplying = false;
+    if (zoomPending !== null) { const p = zoomPending; zoomPending = null; applyHWZoom(p); }
+  }
+  // 두 손가락으로 벌리고 오므리기
+  let pinch = null;
+  $('stage').addEventListener('touchstart', e => {
+    if (e.touches.length === 2 && state.mode === 'camera') {
+      const [a, b] = e.touches;
+      pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z: state.zoom };
+    }
+  }, { passive: true });
+  $('stage').addEventListener('touchmove', e => {
+    if (pinch && e.touches.length === 2) {
+      const [a, b] = e.touches;
+      const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      setZoom(pinch.z * d / pinch.d);
+      e.preventDefault();
+    }
+  }, { passive: false });
+  $('stage').addEventListener('touchend', e => { if (e.touches.length === 0) setTimeout(() => { pinch = null; }, 0); });
+
   // 3:4 비율로 맞추기 (카메라가 4:3 그대로 주면 자르지 않음)
   function cameraCrop() {
     const vw = video.videoWidth, vh = video.videoHeight;
     const portrait = vh >= vw, target = portrait ? 3 / 4 : 4 / 3;
     let w = vw, h = vh;
     if (vw / vh > target) w = vh * target; else h = vw / target;
+    if (!state.zoomHW && state.zoom > 1) { w /= state.zoom; h /= state.zoom; }   // 디지털 줌: 가운데를 잘라냄
     return { crop: [(1 - w / vw) / 2, (1 - h / vh) / 2, w / vw, h / vh], w: Math.round(w), h: Math.round(h) };
   }
 
@@ -211,6 +279,7 @@
     $('shutter').classList.toggle('import', m === 'photo');
     $('shutter').setAttribute('aria-label', m === 'photo' ? '저장' : '촬영');
     $('backBtn').hidden = m !== 'photo';
+    zoomBar.hidden = m !== 'camera';
   }
 
   // ── 사진: 앨범 불러오기 / 기본 카메라 고화질 촬영 ──
@@ -293,7 +362,7 @@
       [w, h] = fitFull(c.w, c.h);
       capRenderer.render(video, { crop: c.crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount,
         tweak: state.tweak, width: w, height: h, auto: curAuto(), seed: state.seed });
-      info = `${w}×${h} · 실시간 카메라`;
+      info = `${w}×${h} · 실시간 카메라` + (!state.zoomHW && state.zoom > 1 ? ` · 디지털 줌 ${state.zoom.toFixed(1)}×` : '');
     } else {
       const p = state.photo;
       w = p.canvas.width; h = p.canvas.height;
@@ -310,7 +379,7 @@
     if (currentUrl) URL.revokeObjectURL(currentUrl);
     currentUrl = URL.createObjectURL(blob);
     $('reviewImg').src = currentUrl;
-    $('reviewInfo').textContent = `${info} · ${(blob.size / 1e6).toFixed(1)}MB · 사진을 꾹 눌러도 저장돼요`;
+    $('reviewInfo').textContent = `${info} · ${blob.size >= 1e6 ? (blob.size / 1e6).toFixed(1) + "MB" : Math.round(blob.size / 1e3) + "KB"} · 사진을 꾹 눌러도 저장돼요`;
     $('review').hidden = false;
   }
   $('retakeBtn').onclick = () => { $('review').hidden = true; };
