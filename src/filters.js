@@ -5,14 +5,14 @@
 const FILTERS = [
   { id:'none', name:'원본', sw:['#9a9a9a','#5e5e5e'], p:{} },
   { id:'natural', name:'내추럴', sw:['#d9cbb8','#6f6355'],
-    p:{ contrast:1.04, saturation:1.03, temp:.015 } },
+    p:{ contrast:1.02, saturation:1.03, temp:.015 } },
 
   // 아그파 비스타 계열: 선명하고 따뜻한 빨강, 청록빛 하늘, 살짝 차가운 그림자
   { id:'agfa100', name:'아그파 100', sw:['#e2603f','#2f7f93'],
-    p:{ exposure:.02, contrast:1.06, saturation:1.08, temp:.0, redSat:.1, skyShift:.2, greenDeep:.05,
+    p:{ exposure:.02, contrast:1.02, saturation:1.08, temp:.0, redSat:.1, skyShift:.2, greenDeep:.05,
         toneS:[.986,1.112,.888], toneM:[1.09,1.0,.9], toneH:[1.098,1.021,.874], fade:.055, fadeColor:[.9,1.0,.85] } },
   { id:'agfa200', name:'아그파 200', sw:['#e8854a','#3d6f86'],
-    p:{ exposure:.03, contrast:1.03, saturation:1.0, redSat:.06, skyShift:.15,
+    p:{ exposure:.03, contrast:1.0, saturation:1.0, redSat:.06, skyShift:.15,
         toneS:[.96,1.13,.91], toneM:[1.065,1.04,.89], toneH:[1.06,1.04,.89], fade:.045, fadeColor:[.92,1.0,.9] } },
 
   // 코니카 센츄리아 계열: 물빠진 색, 들뜬 검정, 차분한 청록·민트 기운 → 아련한 느낌
@@ -27,20 +27,20 @@ const FILTERS = [
     p:{ toneS:[1.0,1.0,1.0], toneM:[1.045,.985,.97], toneH:[1.0,1.0,1.005], shadowTone:-0.5, contrast:.97, saturation:1.02, redSat:-.03 } },
   { id:'fujimood', name:'후지 무드', sw:['#e0a27a','#2d4f57'], grain:25,
     // 공유해 준 사진(제복 입은 두 인형) 실측: 청록 그림자 + 따뜻한 하이라이트, 낮은 키
-    p:{ toneS:[.86,1.07,1.07], toneM:[1.04,1.0,.955], toneH:[1.11,.99,.9], exposure:-.08, contrast:1.06, saturation:.95, fade:.02, fadeColor:[.85,.97,1.0] } },
+    p:{ toneS:[.86,1.07,1.07], toneM:[1.04,1.0,.955], toneH:[1.11,.99,.9], exposure:-.02, contrast:1.0, saturation:.95, fade:.02, fadeColor:[.85,.97,1.0] } },
 
   // 그 외 자연스러운 필름들
   { id:'portra', name:'포트라', sw:['#f0c9a8','#8a6d5c'],
     p:{ exposure:.03, contrast:.96, saturation:.92, temp:.05, tint:.015, redSat:-.05, skyShift:.1,
         shadowTint:[.48,.44,.42], shadowAmt:.1, highTint:[1,.95,.88], highAmt:.15, fade:.03 } },
   { id:'gold', name:'골드', sw:['#f2c14e','#9a5b2e'],
-    p:{ contrast:1.05, saturation:1.05, temp:.13, tint:.01, redSat:.05, skyShift:.05, greenDeep:-.05,
+    p:{ contrast:1.01, saturation:1.05, temp:.13, tint:.01, redSat:.05, skyShift:.05, greenDeep:-.05,
         shadowTint:[.5,.42,.34], shadowAmt:.1, highTint:[1,.92,.74], highAmt:.22, fade:.025 } },
   { id:'fujic', name:'후지 C200', sw:['#b9d1b4','#3f6d63'],
     p:{ contrast:1.02, saturation:.92, temp:-.04, tint:-.03, redSat:-.05, skyShift:.2, greenTeal:.22, greenDeep:.12,
         shadowTint:[.36,.48,.46], shadowAmt:.18, highTint:[.98,1,.96], highAmt:.1, fade:.03 } },
   { id:'bw', name:'흑백', sw:['#e6e6e6','#262626'],
-    p:{ bw:1, contrast:1.12, fade:.02 } },
+    p:{ bw:1, contrast:1.06, fade:.02 } },
 ];
 
 const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0,
@@ -62,7 +62,7 @@ uniform float u_redSat,u_skyShift,u_greenDeep,u_greenTeal;
 uniform vec3 u_highTint,u_shadowTint,u_fadeColor,u_toneS,u_toneM,u_toneH;
 uniform float u_autoGain; uniform vec3 u_wb;
 uniform vec3 u_wbGain; uniform float u_shadowTone;
-uniform float u_tBright,u_tContrast,u_tSat,u_tWarm,u_grain,u_blur;
+uniform float u_tBright,u_tContrast,u_tSat,u_tWarm,u_grain,u_blur,u_tShadow;
 
 float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
 float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
@@ -162,6 +162,11 @@ void main(){
   c = mix(vec3(luma(c)), c, 1.0 + u_tSat);
   c.r += u_tWarm*0.06; c.b -= u_tWarm*0.06; c.g += u_tWarm*0.008;
   c = clamp(c, 0.0, 1.0);
+  // 그림자(후지식): -면 어두운 부분을 부드럽게 들어 올리고, +면 단단하게. 밝은 부분은 그대로
+  if (u_tShadow != 0.0) {
+    vec3 w = 1.0 - smoothstep(0.12, 0.62, c);
+    c = mix(c, pow(c, vec3(1.0 + 0.6 * u_tShadow)), w);
+  }
 
   // 노이즈(필름 입자): 해상도와 상관없이 같은 크기로 보이도록 화면 비율 기준
   if (u_grain > 0.001) {
@@ -227,7 +232,7 @@ class Renderer {
     f('u_seed', seed);
     f('u_autoGain', auto.gain); v3('u_wb', auto.wb);
     f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0);
-    f('u_tWarm', tweak.warm || 0); f('u_grain', tweak.grain || 0); f('u_blur', tweak.blur || 0);
+    f('u_tWarm', tweak.warm || 0); f('u_tShadow', tweak.shadow || 0); f('u_grain', tweak.grain || 0); f('u_blur', tweak.blur || 0);
     for (const k of ['exposure','contrast','saturation','temp','tint','fade','bw','highAmt','shadowAmt','redSat','skyShift','greenDeep','greenTeal']) f('u_' + k, p[k]);
     v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_fadeColor', p.fadeColor); v3('u_toneS', p.toneS); v3('u_toneM', p.toneM); v3('u_toneH', p.toneH); v3('u_wbGain', p.wbGain); f('u_shadowTone', p.shadowTone);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

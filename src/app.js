@@ -119,7 +119,7 @@
 
   // ── 조정: 필름 강도 / 노이즈 / 블러 / 밝기 / 대비 / 채도 / 색온도 ──
   const ADJ = { amount: [0, 100, 100], grain: [0, 100, 20], blur: [0, 100, 0],
-    bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
+    shadow: [-100, 100, -30], bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
   const adj = {};
   for (const k in ADJ) { const v = Number(store.get('adj_' + k, ADJ[k][2])); adj[k] = isFinite(v) ? v : ADJ[k][2]; }
   let adjKey = 'amount';
@@ -136,7 +136,7 @@
   function applyAdj() {
     state.amount = adj.amount / 100;
     state.tweak = { bright: adj.bright / 100, contrast: adj.contrast / 100, sat: adj.sat / 100, warm: adj.warm / 100,
-                    grain: adj.grain / 100, blur: adj.blur / 100 };
+                    grain: adj.grain / 100, blur: adj.blur / 100, shadow: adj.shadow / 100 };
     redraw();
   }
   $('adjTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) { adjKey = b.dataset.k; syncSlider(); } };
