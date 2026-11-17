@@ -205,6 +205,10 @@ const FILTERS = [
   { id:'fujirecipe', name:'후지 레시피', sw:['#f4c9c0','#5f7f95'], grain:15,
     // 공유해 준 레시피 사진(빨간 체크·토마토·노란 모자) 실측: 중간톤만 살짝 따뜻한 분홍, 흰색·검정은 거의 중립
     p:{ toneS:[1.0,1.0,1.0], toneM:[1.045,.985,.97], toneH:[1.0,1.0,1.005], shadowTone:-0.5, contrast:.97, saturation:1.02, redSat:-.03 } },
+  { id:'fuji2', name:'후지2', sw:['#f2d6d2','#4a5562'], grain:30,
+    // 후지카메라/참고2 사진(눈으로 본 특징): 낮은 대비, 부드럽게 뜬 청회색 검정, 파스텔 핑크, 크림빛 하이라이트, 입자감 보통
+    p:{ toneS:[.97,1.0,1.04], toneM:[1.03,1.0,.97], toneH:[1.03,1.01,.95], shadowTone:-0.6, contrast:.93, saturation:.9, redSat:-.05,
+        fade:.06, fadeColor:[.88,.94,1.0] } },
   { id:'fujimood', name:'후지 무드', sw:['#e0a27a','#2d4f57'], grain:25,
     // 공유해 준 사진(제복 입은 두 인형) 실측: 청록 그림자 + 따뜻한 하이라이트, 낮은 키
     p:{ toneS:[.86,1.07,1.07], toneM:[1.04,1.0,.955], toneH:[1.11,.99,.9], exposure:-.02, contrast:1.0, saturation:.95, fade:.02, fadeColor:[.85,.97,1.0] } },
