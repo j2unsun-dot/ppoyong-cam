@@ -37,10 +37,17 @@
   </main>
 
   <section class="controls">
+    <div id="adjTabs" class="adj-tabs">
+      <button data-k="amount" class="active">강도</button>
+      <button data-k="bright">밝기</button>
+      <button data-k="contrast">대비</button>
+      <button data-k="sat">채도</button>
+      <button data-k="warm">색온도</button>
+    </div>
     <div class="slider-row">
-      <span>강도</span>
-      <input id="amount" type="range" min="0" max="100" value="100">
-      <span id="amountVal">100</span>
+      <button id="adjReset" class="reset" aria-label="이 항목 초기화">↺</button>
+      <input id="slider" type="range" min="0" max="100" value="100">
+      <span id="sliderVal">100</span>
     </div>
     <div id="filters" class="filters"></div>
     <div class="shutter-row">

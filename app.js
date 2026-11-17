@@ -115,11 +115,31 @@
     }
   });
 
-  // 강도
-  $('amount').oninput = (e) => {
-    state.amount = e.target.value / 100; $('amountVal').textContent = e.target.value;
+  // ── 세부 조정: 강도 / 밝기 / 대비 / 채도 / 색온도 ──
+  // 필터(기본값) 위에 덧입혀지는 조정. 강도 0~100(기본 100), 나머지 -100~100(기본 0)
+  const ADJ = { amount: [0, 100, 100], bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
+  const adj = {};
+  for (const k in ADJ) { const v = Number(store.get('adj_' + k, ADJ[k][2])); adj[k] = isFinite(v) ? v : ADJ[k][2]; }
+  let adjKey = 'amount';
+  const slider = $('slider');
+  function syncSlider() {
+    const [mn, mx] = ADJ[adjKey];
+    slider.min = mn; slider.max = mx; slider.value = adj[adjKey];
+    $('sliderVal').textContent = adj[adjKey] > 0 && adjKey !== 'amount' ? '+' + adj[adjKey] : adj[adjKey];
+    $('adjTabs').querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.k === adjKey);
+      b.classList.toggle('changed', adj[b.dataset.k] !== ADJ[b.dataset.k][2]);
+    });
+  }
+  function applyAdj() {
+    state.amount = adj.amount / 100;
+    state.tweak = { bright: adj.bright / 100, contrast: adj.contrast / 100, sat: adj.sat / 100, warm: adj.warm / 100 };
     if (state.mode === 'photo') drawPhoto();
-  };
+  }
+  $('adjTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) { adjKey = b.dataset.k; syncSlider(); } };
+  slider.oninput = () => { adj[adjKey] = Number(slider.value); store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
+  $('adjReset').onclick = () => { adj[adjKey] = ADJ[adjKey][2]; store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
+  syncSlider(); applyAdj();
 
   // 타이머
   const timers = [0, 3, 10];
@@ -186,7 +206,7 @@
         try { smoothAuto(measure(video, video.videoWidth, video.videoHeight), 0.25); } catch {}
       }
       const [pw, ph] = fit(w, h, 1280);
-      renderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, width: pw, height: ph, auto: curAuto() });
+      renderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
     }
     requestAnimationFrame(loop);
   }
@@ -228,7 +248,7 @@
   function drawPhoto() {
     const p = state.photo; if (!p) return;
     const [pw, ph] = fit(p.width, p.height, 1600);
-    renderer.render(p, { params: state.filter.p, amount: state.amount, width: pw, height: ph, auto: curAuto() });
+    renderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
   }
 
   // ── 촬영/저장 ──
@@ -257,10 +277,10 @@
     if (state.mode === 'camera') {
       const { crop, w, h } = cameraCrop();
       const [cw, ch] = fit(w, h, 4096);
-      capRenderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, width: cw, height: ch, auto: curAuto() });
+      capRenderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: cw, height: ch, auto: curAuto() });
     } else {
       const p = state.photo;
-      capRenderer.render(p, { params: state.filter.p, amount: state.amount, width: p.width, height: p.height, auto: curAuto() });
+      capRenderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: p.width, height: p.height, auto: curAuto() });
     }
     return new Promise(res => capRenderer.canvas.toBlob(res, 'image/jpeg', 0.93));
   }

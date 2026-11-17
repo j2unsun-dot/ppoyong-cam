@@ -72,6 +72,7 @@ uniform float u_amount, u_time;
 uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_soft,u_glow,u_leak,u_vignette,u_grain,u_bw,u_highAmt,u_shadowAmt,u_letterbox,u_greenDeep,u_greenTeal;
 uniform vec3 u_highTint,u_shadowTint,u_glowColor;
 uniform float u_autoGain; uniform vec3 u_wb;
+uniform float u_tBright, u_tContrast, u_tSat, u_tWarm;
 
 vec2 src(vec2 uv){ uv.x = mix(uv.x, 1.0-uv.x, u_mirror); return u_crop.xy + clamp(uv,0.0,1.0)*u_crop.zw; }
 // 자동 보정: 조명 색 중화 + 밝기 맞춤 (흰색은 날리지 않고 어두운 곳만 끌어올림)
@@ -160,6 +161,14 @@ void main(){
   c = clamp(c,0.0,1.0);
   c = mix(orig, c, u_amount);
 
+  // 세부 조정 (필터 위에 덧입힘)
+  float bg = pow(2.0, u_tBright * 1.3);
+  c = c*bg / (1.0 + (bg-1.0)*c);                       // 밝기: 흰색은 날리지 않고 중간톤 위주
+  c = clamp((c-0.5)*(1.0 + u_tContrast*0.6) + 0.5, 0.0, 1.0);
+  c = mix(vec3(luma(c)), c, 1.0 + u_tSat);
+  c.r += u_tWarm*0.07; c.b -= u_tWarm*0.07; c.g += u_tWarm*0.01;
+  c = clamp(c, 0.0, 1.0);
+
   // 시네마 레터박스 (2.35:1)
   if (u_letterbox > 0.5) {
     float bar = u_res.x > u_res.y ? (1.0 - u_res.x / 2.35 / u_res.y) * 0.5 : 0.09;
@@ -203,7 +212,7 @@ class Renderer {
     for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(prog, i); this.u[info.name] = gl.getUniformLocation(prog, info.name); }
   }
   // source: video/img/canvas, crop: [x,y,w,h] 0-1, params: filter params
-  render(source, { crop = [0,0,1,1], mirror = false, params = {}, amount = 1, width, height, auto = { gain: 1, wb: [1,1,1] } }) {
+  render(source, { crop = [0,0,1,1], mirror = false, params = {}, amount = 1, tweak = {}, width, height, auto = { gain: 1, wb: [1,1,1] } }) {
     const gl = this.gl;
     if (this.canvas.width !== width || this.canvas.height !== height) { this.canvas.width = width; this.canvas.height = height; }
     gl.viewport(0, 0, width, height);
@@ -218,6 +227,7 @@ class Renderer {
     f('u_aspect', width / height);
     gl.uniform2f(this.u.u_res, width, height);
     f('u_amount', amount);
+    f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0); f('u_tWarm', tweak.warm || 0);
     f('u_time', performance.now() / 1000);
     for (const k of ['exposure','contrast','saturation','temp','tint','fade','soft','glow','leak','vignette','grain','bw','highAmt','shadowAmt','letterbox','greenDeep','greenTeal']) f('u_' + k, p[k]);
     v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_glowColor', p.glowColor);
