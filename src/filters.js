@@ -9,16 +9,16 @@ const FILTERS = [
 
   // 아그파 비스타 계열: 선명하고 따뜻한 빨강, 청록빛 하늘, 살짝 차가운 그림자
   { id:'agfa100', name:'아그파 100', sw:['#e2603f','#2f7f93'],
-    p:{ contrast:1.07, saturation:1.05, temp:.05, tint:.005, redSat:.12, skyShift:.32, greenDeep:.08,
-        shadowTint:[.40,.45,.56], shadowAmt:.12, highTint:[1,.96,.88], highAmt:.14, fade:.015 } },
+    p:{ exposure:.02, contrast:1.06, saturation:1.08, temp:.0, redSat:.1, skyShift:.2, greenDeep:.05,
+        toneS:[.986,1.112,.888], toneM:[1.09,1.0,.9], toneH:[1.098,1.021,.874], fade:.055, fadeColor:[.9,1.0,.85] } },
   { id:'agfa200', name:'아그파 200', sw:['#e8854a','#3d6f86'],
-    p:{ contrast:1.09, saturation:1.03, temp:.09, tint:.02, redSat:.14, skyShift:.26, greenDeep:.05,
-        shadowTint:[.46,.42,.52], shadowAmt:.14, highTint:[1,.93,.8], highAmt:.2, fade:.035 } },
+    p:{ exposure:.03, contrast:1.03, saturation:1.0, redSat:.06, skyShift:.15,
+        toneS:[.96,1.13,.91], toneM:[1.065,1.04,.89], toneH:[1.06,1.04,.89], fade:.045, fadeColor:[.92,1.0,.9] } },
 
   // 코니카 센츄리아 계열: 물빠진 색, 들뜬 검정, 차분한 청록·민트 기운 → 아련한 느낌
   { id:'konica', name:'코니카', sw:['#c9d3c8','#7d9a98'],
-    p:{ exposure:.04, contrast:.95, saturation:.82, temp:-.03, tint:-.035, redSat:-.12, skyShift:.18, greenTeal:.15,
-        shadowTint:[.40,.52,.52], shadowAmt:.16, highTint:[1,.97,.94], highAmt:.15, fade:.055 } },
+    p:{ exposure:.03, contrast:.96, saturation:.72, redSat:-.1, skyShift:.2, greenTeal:.12,
+        toneS:[.89,1.03,1.08], toneM:[1.03,.995,.94], toneH:[1.02,1.045,.935], fade:.13, fadeColor:[.85,.97,1.0] } },
 
   // 그 외 자연스러운 필름들
   { id:'portra', name:'포트라', sw:['#f0c9a8','#8a6d5c'],
@@ -36,7 +36,7 @@ const FILTERS = [
 
 const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0,
   highTint:[1,1,1], highAmt:0, shadowTint:[.5,.5,.5], shadowAmt:0, bw:0,
-  redSat:0, skyShift:0, greenDeep:0, greenTeal:0 };
+  redSat:0, skyShift:0, greenDeep:0, greenTeal:0, fadeColor:[.92,.94,.95], toneS:[1,1,1], toneM:[1,1,1], toneH:[1,1,1] };
 
 const VERT = `
 attribute vec2 a_pos; varying vec2 v_uv;
@@ -50,7 +50,7 @@ uniform vec4 u_crop; uniform float u_mirror; uniform float u_aspect;
 uniform float u_amount, u_seed;
 uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_bw,u_highAmt,u_shadowAmt;
 uniform float u_redSat,u_skyShift,u_greenDeep,u_greenTeal;
-uniform vec3 u_highTint,u_shadowTint;
+uniform vec3 u_highTint,u_shadowTint,u_fadeColor,u_toneS,u_toneM,u_toneH;
 uniform float u_autoGain; uniform vec3 u_wb;
 uniform float u_tBright,u_tContrast,u_tSat,u_tWarm,u_grain,u_blur;
 
@@ -124,8 +124,17 @@ void main(){
   c = mix(c, c * (u_highTint / max(luma(u_highTint), 0.01)), hw * u_highAmt);
   c = mix(c, c * (u_shadowTint / max(luma(u_shadowTint), 0.01)), sw * u_shadowAmt);
 
+  // 톤별 색 기울기(사진참고 실측값): 그림자/중간/밝은 부분에 각각 곱함, 밝기는 유지
+  {
+    float L0 = luma(c);
+    float ws = 1.0 - smoothstep(0.08, 0.42, L0), wh = smoothstep(0.45, 0.85, L0), wm = max(1.0 - ws - wh, 0.0);
+    vec3 m = ws*u_toneS + wm*u_toneM + wh*u_toneH;
+    m /= max(dot(m, vec3(0.299,0.587,0.114)), 0.01);
+    c = clamp(c * m, 0.0, 1.0);
+  }
+
   // 물빠진 검정
-  c = u_fade * vec3(0.92, 0.94, 0.95) + c * (1.0 - u_fade);
+  c = u_fade * u_fadeColor + c * (1.0 - u_fade);
   c = clamp(c, 0.0, 1.0);
 
   // 필름 강도
@@ -204,7 +213,7 @@ class Renderer {
     f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0);
     f('u_tWarm', tweak.warm || 0); f('u_grain', tweak.grain || 0); f('u_blur', tweak.blur || 0);
     for (const k of ['exposure','contrast','saturation','temp','tint','fade','bw','highAmt','shadowAmt','redSat','skyShift','greenDeep','greenTeal']) f('u_' + k, p[k]);
-    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint);
+    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_fadeColor', p.fadeColor); v3('u_toneS', p.toneS); v3('u_toneM', p.toneM); v3('u_toneH', p.toneH);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }

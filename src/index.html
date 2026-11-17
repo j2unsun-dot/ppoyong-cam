@@ -45,6 +45,8 @@
   </main>
 
   <section class="controls">
+    <button id="panelToggle" class="panel-toggle" aria-label="필름·조정 숨기기/보이기"><span></span></button>
+    <div class="panel">
     <div id="adjTabs" class="adj-tabs">
       <button data-k="amount" class="active">필름</button>
       <button data-k="grain">노이즈</button>
@@ -60,6 +62,7 @@
       <span id="sliderVal">100</span>
     </div>
     <div id="filters" class="filters"></div>
+    </div>
     <div class="shutter-row">
       <label class="round" aria-label="사진 불러오기">
         <input id="fileInput" type="file" accept="image/*" hidden>

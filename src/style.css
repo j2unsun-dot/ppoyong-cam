@@ -81,3 +81,9 @@ input[type=range]{flex:1;accent-color:var(--accent);height:24px}
 .zoom-bar[hidden]{display:none}
 .zoom-bar button{min-width:38px;height:38px;border-radius:50%;font-size:12px;color:#eee}
 .zoom-bar button.on{background:rgba(0,0,0,.5);color:var(--accent);font-weight:700}
+
+.panel-toggle{display:block;width:100%;height:22px;margin-top:-6px;padding:0}
+.panel-toggle span{display:block;width:40px;height:5px;border-radius:3px;background:#4a433c;margin:0 auto}
+.panel{overflow:hidden;max-height:260px;transition:max-height .25s ease, opacity .2s}
+#app.collapsed .panel{max-height:0;opacity:0}
+#app.collapsed .controls{padding-top:6px}

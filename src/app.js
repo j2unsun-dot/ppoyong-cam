@@ -140,6 +140,17 @@
   $('adjReset').onclick = () => { adj[adjKey] = ADJ[adjKey][2]; store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
   syncSlider(); applyAdj();
 
+  // 필름·조정 패널 숨기기/보이기 (화면 크게 보기). 아래로 쓸어내려도 숨겨짐
+  function setCollapsed(v) { $('app').classList.toggle('collapsed', v); store.set('collapsed', v ? '1' : '0'); }
+  setCollapsed(store.get('collapsed', '0') === '1');
+  $('panelToggle').onclick = () => setCollapsed(!$('app').classList.contains('collapsed'));
+  let py = null;
+  document.querySelector('.controls').addEventListener('touchstart', e => { py = e.touches[0].clientY; }, { passive: true });
+  document.querySelector('.controls').addEventListener('touchend', e => {
+    if (py === null) return; const dy = e.changedTouches[0].clientY - py; py = null;
+    if (dy > 40) setCollapsed(true); else if (dy < -40) setCollapsed(false);
+  });
+
   // 타이머
   const timers = [0, 3, 10];
   $('timerBtn').onclick = () => {
