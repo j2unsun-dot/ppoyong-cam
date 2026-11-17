@@ -80,6 +80,7 @@
     state.autoOn = !state.autoOn; store.set('auto', state.autoOn ? '1' : '0'); syncAutoBtn(); redraw();
   };
 
+  let adjReady = false;   // 조정 값이 준비되기 전에는 필름 선택이 슬라이더를 건드리지 않음
   // ── 필름 목록 ──
   const list = $('filters');
   FILTERS.forEach(f => {
@@ -92,6 +93,9 @@
   let toastTimer;
   function selectFilter(f, scroll = true) {
     state.filter = f; store.set('filter', f.id);
+    if (typeof f.grain === 'number' && adjReady && store.get('adj_grain_touched', '0') !== '1') {
+      adj.grain = f.grain; syncSlider(); applyAdj();
+    }
     list.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.id === f.id));
     const el = list.querySelector(`[data-id="${f.id}"]`);
     if (scroll && el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
@@ -136,9 +140,9 @@
     redraw();
   }
   $('adjTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) { adjKey = b.dataset.k; syncSlider(); } };
-  slider.oninput = () => { adj[adjKey] = Number(slider.value); store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
+  slider.oninput = () => { if (adjKey === 'grain') store.set('adj_grain_touched', '1'); adj[adjKey] = Number(slider.value); store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
   $('adjReset').onclick = () => { adj[adjKey] = ADJ[adjKey][2]; store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
-  syncSlider(); applyAdj();
+  syncSlider(); applyAdj(); adjReady = true;
 
   // 필름·조정 패널 숨기기/보이기 (화면 크게 보기). 아래로 쓸어내려도 숨겨짐
   function setCollapsed(v) { $('app').classList.toggle('collapsed', v); store.set('collapsed', v ? '1' : '0'); }

@@ -20,6 +20,11 @@ const FILTERS = [
     p:{ exposure:.03, contrast:.96, saturation:.72, redSat:-.1, skyShift:.2, greenTeal:.12,
         toneS:[.89,1.03,1.08], toneM:[1.03,.995,.94], toneH:[1.02,1.045,.935], fade:.13, fadeColor:[.85,.97,1.0] } },
 
+  // 후지 카메라(X-T30 II) 레시피: ASTIA/소프트(온화한 색상과 대비) 기반 + 6000K + WB 시프트 R+2 B+3 + 그림자 -0.5 + 그레인 약하게
+  // 6000K: 일광(약 5500K)보다 살짝 따뜻하게 → R×1.04, B×0.955 / R+2 B+3 시프트 → R×1.03, B×1.045
+  { id:'fujirecipe', name:'후지 레시피', sw:['#f4c9c0','#5f7f95'], grain:15,
+    p:{ wbGain:[1.071,1.0,0.998], shadowTone:-0.5, contrast:.95, saturation:1.02, redSat:-.04, skyShift:.06 } },
+
   // 그 외 자연스러운 필름들
   { id:'portra', name:'포트라', sw:['#f0c9a8','#8a6d5c'],
     p:{ exposure:.03, contrast:.96, saturation:.92, temp:.05, tint:.015, redSat:-.05, skyShift:.1,
@@ -36,7 +41,7 @@ const FILTERS = [
 
 const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0,
   highTint:[1,1,1], highAmt:0, shadowTint:[.5,.5,.5], shadowAmt:0, bw:0,
-  redSat:0, skyShift:0, greenDeep:0, greenTeal:0, fadeColor:[.92,.94,.95], toneS:[1,1,1], toneM:[1,1,1], toneH:[1,1,1] };
+  redSat:0, skyShift:0, greenDeep:0, greenTeal:0, fadeColor:[.92,.94,.95], toneS:[1,1,1], toneM:[1,1,1], toneH:[1,1,1], wbGain:[1,1,1], shadowTone:0 };
 
 const VERT = `
 attribute vec2 a_pos; varying vec2 v_uv;
@@ -52,6 +57,7 @@ uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_bw,u_hig
 uniform float u_redSat,u_skyShift,u_greenDeep,u_greenTeal;
 uniform vec3 u_highTint,u_shadowTint,u_fadeColor,u_toneS,u_toneM,u_toneH;
 uniform float u_autoGain; uniform vec3 u_wb;
+uniform vec3 u_wbGain; uniform float u_shadowTone;
 uniform float u_tBright,u_tContrast,u_tSat,u_tWarm,u_grain,u_blur;
 
 float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
@@ -91,6 +97,7 @@ void main(){
   vec3 c = base;
 
   // ── 필름 색 ──
+  c = clamp(c * u_wbGain, 0.0, 1.0);
   c = gainCurve(c, pow(2.0, u_exposure));
   c.r += u_temp*0.10; c.b -= u_temp*0.10; c.g += u_temp*0.015;
   c.r += u_tint*0.04; c.b += u_tint*0.04; c.g -= u_tint*0.05;
@@ -115,6 +122,11 @@ void main(){
   vec3 s = c*c*(3.0-2.0*c);
   c = u_contrast >= 1.0 ? mix(c, s, (u_contrast-1.0)*2.0) : mix(c, vec3(0.5) + (c-0.5)*0.6, (1.0-u_contrast)*2.5);
   c = clamp(c, 0.0, 1.0);
+  // 후지식 그림자 톤: 음수면 어두운 부분을 부드럽게 들어 올림, 양수면 단단하게
+  if (u_shadowTone != 0.0) {
+    vec3 w = 1.0 - smoothstep(0.15, 0.6, c);
+    c = mix(c, pow(c, vec3(1.0 + 0.3 * u_shadowTone)), w);
+  }
 
   c = mix(vec3(luma(c)), c, u_saturation);
 
@@ -213,7 +225,7 @@ class Renderer {
     f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0);
     f('u_tWarm', tweak.warm || 0); f('u_grain', tweak.grain || 0); f('u_blur', tweak.blur || 0);
     for (const k of ['exposure','contrast','saturation','temp','tint','fade','bw','highAmt','shadowAmt','redSat','skyShift','greenDeep','greenTeal']) f('u_' + k, p[k]);
-    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_fadeColor', p.fadeColor); v3('u_toneS', p.toneS); v3('u_toneM', p.toneM); v3('u_toneH', p.toneH);
+    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_fadeColor', p.fadeColor); v3('u_toneS', p.toneS); v3('u_toneM', p.toneM); v3('u_toneH', p.toneH); v3('u_wbGain', p.wbGain); f('u_shadowTone', p.shadowTone);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
