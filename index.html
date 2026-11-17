@@ -11,7 +11,76 @@
 <meta name="theme-color" content="#1a1613">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=5">
+<style>
+:root{
+  --bg:#1a1613; --panel:#231e1a; --text:#fff6ec; --muted:#bfae9c;
+  --accent:#ffc98f; --accent2:#ffb3a1; --chip:#2e2722;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;
+  overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#app{height:100dvh;display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;height:48px}
+.brand{font-weight:700;letter-spacing:.5px;color:var(--accent)}
+.top-btns{display:flex;gap:8px}
+.pill{padding:6px 12px;border-radius:99px;background:var(--chip);font-size:13px;color:var(--muted)}
+.pill.on{background:var(--accent);color:#3a2a1c}
+
+.stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#view{max-width:100%;max-height:100%;aspect-ratio:3/4;width:100%;object-fit:contain;display:block;background:#000;border-radius:4px}
+#video{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0}
+.filter-toast{position:absolute;top:16px;left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:99px;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:14px;opacity:0;transition:opacity .3s}
+.filter-toast.show{opacity:1}
+.countdown{position:absolute;font-size:96px;font-weight:200;text-shadow:0 2px 20px rgba(0,0,0,.4);pointer-events:none}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.flash.on{opacity:.85;transition:none}
+
+.start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 30% 25%,#5a4330 0,#1a1613 70%)}
+.start[hidden]{display:none}
+.start-card{text-align:center;padding:24px}
+.start-title{font-size:34px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.start p{color:var(--muted);margin:6px 0 22px}
+.start .msg{font-size:13px;line-height:1.5;margin-top:16px;max-width:280px}
+.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#3a2a1c;font-weight:700;
+  padding:14px 28px;border-radius:99px;font-size:16px}
+.ghost{background:var(--chip);padding:14px 24px;border-radius:99px;font-size:16px}
+
+.controls{background:var(--panel);padding:10px 0 12px;border-radius:20px 20px 0 0}
+.adj-tabs{display:flex;justify-content:center;gap:4px;padding:0 12px 6px}
+.adj-tabs button{position:relative;padding:5px 11px;border-radius:99px;font-size:12px;color:var(--muted)}
+.adj-tabs button.active{background:var(--chip);color:var(--text)}
+.adj-tabs button.changed::after{content:"";position:absolute;top:3px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.reset{width:26px;height:26px;border-radius:50%;background:var(--chip);color:var(--muted);font-size:14px;line-height:26px;padding:0}
+.slider-row{display:flex;align-items:center;gap:10px;padding:0 20px 8px;font-size:12px;color:var(--muted)}
+.slider-row span:last-child{width:26px;text-align:right}
+input[type=range]{flex:1;accent-color:var(--accent);height:24px}
+.filters{display:flex;gap:10px;overflow-x:auto;padding:4px 16px 12px;scroll-snap-type:x proximity;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;scroll-snap-align:center;font-size:12px;color:var(--muted)}
+.chip .sw{width:54px;height:54px;border-radius:14px;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.chip.active{color:var(--text)}
+.chip.active .sw{border-color:var(--accent)}
+.chip .grp{font-size:9px;opacity:.7;margin-top:-4px}
+.shutter-row{display:flex;justify-content:space-around;align-items:center;padding:4px 24px 0}
+.round{width:48px;height:48px;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.round svg{width:24px;height:24px;fill:none;stroke:var(--text);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.shutter{width:76px;height:76px;border-radius:50%;border:4px solid var(--text);padding:4px}
+.shutter span{display:block;width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#fff,var(--accent));transition:transform .1s}
+.shutter:active span{transform:scale(.88)}
+.shutter.import span{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+
+.review{position:fixed;inset:0;background:rgba(10,8,6,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 20px);z-index:10}
+.review[hidden]{display:none}
+.review img{max-width:100%;max-height:72dvh;border-radius:6px;-webkit-user-select:auto;-webkit-touch-callout:default}
+.hint{font-size:12px;color:var(--muted);margin:12px 0 16px}
+.review-actions{display:flex;gap:12px}
+</style>
 </head>
 <body>
 <div id="app">
@@ -73,7 +142,556 @@
 </div>
 
 <video id="video" playsinline muted autoplay></video>
-<script src="filters.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script>
+// 필터 정의 + WebGL 렌더러
+// temp: +따뜻/-차가움, tint: +분홍/-초록, fade: 검정 띄우기, soft: 뽀얀 확산, glow: 하이라이트 빛번짐
+const FILTERS = [
+  { id:'none', name:'원본', group:'', sw:['#999','#666'], p:{} },
+
+  // ── 뽀용 ──
+  { id:'butter', name:'버터', group:'뽀용', sw:['#fff1c9','#f3c98b'],
+    p:{ exposure:.14, contrast:.97, saturation:.98, temp:.24, tint:.01, fade:.03, glow:.2,
+        highTint:[1.0,.93,.7], highAmt:.3, shadowTint:[.66,.52,.4], shadowAmt:.14, vignette:.08, grain:.015 } },
+  { id:'sunny', name:'햇살', group:'뽀용', sw:['#fff6d6','#ffb878'],
+    p:{ exposure:.1, contrast:1.0, saturation:1.0, temp:.2, tint:.01, fade:.025, glow:.275, leak:.5,
+        highTint:[1.0,.9,.7], highAmt:.2, vignette:.1, grain:.015 } },
+  { id:'wedding', name:'웨딩', group:'뽀용', sw:['#ffffff','#f6dcd6'],
+    p:{ exposure:.26, contrast:.9, saturation:.8, temp:.04, tint:.05, fade:.05, glow:.15,
+        highTint:[1.0,.96,.94], highAmt:.2, shadowTint:[.6,.52,.55], shadowAmt:.15 } },
+  { id:'peach', name:'피치', group:'뽀용', sw:['#ffe3d3','#f7a48f'],
+    p:{ exposure:.12, contrast:.96, saturation:.95, temp:.09, tint:.07, fade:.03, glow:.15,
+        highTint:[1.0,.86,.8], highAmt:.25, vignette:.06 } },
+  { id:'milk', name:'우유', group:'뽀용', sw:['#fbf8f2','#e2dbd0'],
+    p:{ exposure:.3, contrast:.88, saturation:.68, temp:.03, fade:.065, glow:.1,
+        highTint:[1,.98,.95], highAmt:.15 } },
+
+  // ── 리코 GR 스타일 ──
+  { id:'posi', name:'포지티브', group:'리코', sw:['#f2b56b','#2f5a63'],
+    p:{ exposure:.02, contrast:1.25, saturation:1.18, temp:.1, tint:-.01, shadowTint:[.2,.42,.46], shadowAmt:.25,
+        highTint:[1,.88,.66], highAmt:.15, vignette:.38, grain:.035 } },
+  { id:'nega', name:'네거티브', group:'리코', sw:['#d9cfae','#5d7a78'],
+    p:{ exposure:.06, contrast:.88, saturation:.82, temp:-.02, fade:.05, shadowTint:[.32,.5,.52], shadowAmt:.3,
+        highTint:[1,.95,.8], highAmt:.2, vignette:.2, grain:.04 } },
+  { id:'hicon', name:'하이콘 흑백', group:'리코', sw:['#eeeeee','#111111'],
+    p:{ bw:1, exposure:.02, contrast:1.55, vignette:.4, grain:.09 } },
+  { id:'bleach', name:'블리치', group:'리코', sw:['#c9c3b4','#3b3a36'],
+    p:{ exposure:.03, contrast:1.35, saturation:.42, temp:.02, vignette:.3, grain:.05 } },
+
+  { id:'deep', name:'진득', group:'리코', sw:['#c9733e','#3a2a22'],
+    p:{ exposure:.02, contrast:1.18, saturation:1.22, temp:.12, tint:.01, fade:.015,
+        shadowTint:[.36,.24,.2], shadowAmt:.22, highTint:[1,.86,.62], highAmt:.22, vignette:.3, grain:.03, glow:.06, glowColor:[1,.6,.4] } },
+
+  // ── 영화 필름 ──
+  { id:'cine', name:'시네마', group:'필름', sw:['#f0a35e','#1f4c57'],
+    p:{ contrast:1.12, saturation:1.05, temp:.04, shadowTint:[.12,.4,.46], shadowAmt:.42,
+        highTint:[1,.76,.5], highAmt:.28, fade:.02, vignette:.35, grain:.035, glow:.075, glowColor:[1,.7,.5], letterbox:1 } },
+  { id:'fujimovie', name:'후지 무비', group:'필름', sw:['#8e9a8f','#22302a'],
+    p:{ exposure:-.14, contrast:1.16, saturation:.8, temp:-.03, tint:-.05, fade:.01,
+        shadowTint:[.18,.26,.22], shadowAmt:.35, highTint:[.95,1.0,.95], highAmt:.15,
+        greenDeep:.6, greenTeal:.25, vignette:.25, grain:.035 } },
+  { id:'kodak', name:'코닥 무비', group:'필름', sw:['#f5c582','#7a3d2b'],
+    p:{ exposure:.03, contrast:1.06, saturation:1.08, temp:.13, tint:.02, fade:.03,
+        shadowTint:[.45,.32,.28], shadowAmt:.15, highTint:[1,.88,.68], highAmt:.2,
+        glow:.225, glowColor:[1,.35,.2], vignette:.28, grain:.05 } },
+  { id:'fuji', name:'초록 필름', group:'필름', sw:['#cfdcb8','#3e5a4e'],
+    p:{ exposure:.05, contrast:.95, saturation:.88, temp:-.04, tint:-.04, fade:.04,
+        shadowTint:[.3,.5,.42], shadowAmt:.25, highTint:[.98,.97,.88], highAmt:.15, vignette:.22, grain:.045 } },
+  { id:'night', name:'밤 영화', group:'필름', sw:['#3c6e8c','#d27a4b'],
+    p:{ exposure:.04, contrast:1.18, saturation:1.1, temp:-.08, shadowTint:[.1,.32,.5], shadowAmt:.45,
+        highTint:[1,.72,.5], highAmt:.3, glow:.2, glowColor:[1,.55,.35], vignette:.42, grain:.06, letterbox:1 } },
+];
+
+const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0, soft:0, glow:0, glowColor:[1,.95,.85],
+  leak:0, highTint:[1,1,1], highAmt:0, shadowTint:[.5,.5,.5], shadowAmt:0, vignette:0, grain:0, bw:0, letterbox:0, greenDeep:0, greenTeal:0 };
+
+const VERT = `
+attribute vec2 a_pos; varying vec2 v_uv;
+void main(){ v_uv = a_pos*0.5+0.5; v_uv.y = 1.0 - v_uv.y; gl_Position = vec4(a_pos,0.0,1.0); }`;
+
+const FRAG = `
+precision highp float;
+varying vec2 v_uv;
+uniform sampler2D u_tex;
+uniform vec4 u_crop; uniform float u_mirror; uniform float u_aspect; uniform vec2 u_res;
+uniform float u_amount, u_time;
+uniform float u_exposure,u_contrast,u_saturation,u_temp,u_tint,u_fade,u_soft,u_glow,u_leak,u_vignette,u_grain,u_bw,u_highAmt,u_shadowAmt,u_letterbox,u_greenDeep,u_greenTeal;
+uniform vec3 u_highTint,u_shadowTint,u_glowColor;
+uniform float u_autoGain; uniform vec3 u_wb;
+uniform float u_tBright, u_tContrast, u_tSat, u_tWarm;
+
+vec2 src(vec2 uv){ uv.x = mix(uv.x, 1.0-uv.x, u_mirror); return u_crop.xy + clamp(uv,0.0,1.0)*u_crop.zw; }
+// 자동 보정: 조명 색 중화 + 밝기 맞춤 (흰색은 날리지 않고 어두운 곳만 끌어올림)
+vec3 prep(vec3 c){
+  c = clamp(c*u_wb, 0.0, 1.0);
+  float g = u_autoGain;
+  return c*g / (1.0 + (g-1.0)*c);
+}
+vec3 tex(vec2 uv){ return prep(texture2D(u_tex, src(uv)).rgb); }
+float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
+float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
+
+void main(){
+  vec2 uv = v_uv;
+  vec3 orig = tex(uv);
+  vec3 c = orig;
+
+  // 블러 샘플 (뽀얀 확산 + 빛번짐)
+  vec3 blur = vec3(0.0); vec3 bright = vec3(0.0);
+  if (u_soft > 0.0 || u_glow > 0.0) {
+    vec2 r = vec2(0.012, 0.012*u_aspect);
+    for (int i=0;i<12;i++){
+      float a = float(i)*0.5236;
+      vec2 d = vec2(cos(a),sin(a));
+      vec3 s1 = tex(uv + d*r);
+      vec3 s2 = tex(uv + d*r*2.4);
+      blur += s1 + s2;
+      bright += max(s1-0.8,0.0) + max(s2-0.78,0.0)*0.8;
+    }
+    blur /= 24.0; bright /= 12.0;
+    // 밝은 부분만 은은하게 번지는 프로미스트 느낌 (어두운 곳은 선명하게 유지)
+    c += max(blur - c, 0.0) * u_soft * 1.3;
+  }
+
+  // 노출, 색온도, 틴트
+  c *= pow(2.0, u_exposure);
+  c.r += u_temp*0.12; c.b -= u_temp*0.12; c.g += u_temp*0.02;
+  c.r += u_tint*0.05; c.b += u_tint*0.05; c.g -= u_tint*0.06;
+  c = clamp(c,0.0,1.0);
+
+  // 흑백
+  if (u_bw > 0.5) { float l = dot(c, vec3(0.35,0.5,0.15)); c = vec3(l); }
+
+  // 대비 (부드러운 S커브)
+  c = clamp((c-0.5)*u_contrast + 0.5, 0.0, 1.0);
+  vec3 sc = c*c*(3.0-2.0*c);
+  c = u_contrast > 1.0 ? mix(c, sc, min(u_contrast-1.0,1.0)*0.5) : c;
+
+  // 채도
+  float l = luma(c);
+  c = mix(vec3(l), c, u_saturation);
+
+  // 초록을 깊고 차분하게 (후지 계열 녹색)
+  float gn = clamp(c.g - max(c.r, c.b), 0.0, 1.0);
+  c -= gn * u_greenDeep * vec3(0.15, 0.55, 0.1);
+  c.b += gn * u_greenTeal * 0.45; c.r -= gn * u_greenTeal * 0.1;
+  c = clamp(c, 0.0, 1.0);
+
+  // 스플릿 톤
+  l = luma(c);
+  float hw = smoothstep(0.35,1.0,l), sw = 1.0 - smoothstep(0.0,0.55,l);
+  c = mix(c, c*u_highTint*1.05 + (u_highTint-1.0)*0.1, hw*u_highAmt);
+  c = mix(c, mix(c, u_shadowTint, 0.6), sw*u_shadowAmt);
+
+  // 페이드(검정 띄우기)
+  c = c*(1.0-u_fade) + u_fade*vec3(0.98,0.95,0.92)*0.55;
+
+  // 빛번짐
+  c = 1.0 - (1.0-c)*(1.0 - bright*u_glowColor*u_glow*3.0);
+
+  // 햇살 라이트릭
+  vec2 lp = uv - vec2(0.05, -0.05);
+  lp.y /= u_aspect;
+  float leak = exp(-dot(lp,lp)*3.0);
+  c = 1.0 - (1.0-c)*(1.0 - vec3(1.0,0.78,0.45)*leak*u_leak);
+
+  // 비네팅
+  vec2 vp = uv-0.5;
+  c *= 1.0 - u_vignette*smoothstep(0.25, 0.85, length(vp*vec2(1.0,1.0/u_aspect))*1.25);
+
+  // 그레인
+  float g = hash(floor(gl_FragCoord.xy) + fract(u_time)*100.0) - 0.5;
+  c += g*u_grain*(1.2 - luma(c)*0.6);
+
+  c = clamp(c,0.0,1.0);
+  c = mix(orig, c, u_amount);
+
+  // 세부 조정 (필터 위에 덧입힘)
+  float bg = pow(2.0, u_tBright * 1.3);
+  c = c*bg / (1.0 + (bg-1.0)*c);                       // 밝기: 흰색은 날리지 않고 중간톤 위주
+  c = clamp((c-0.5)*(1.0 + u_tContrast*0.6) + 0.5, 0.0, 1.0);
+  c = mix(vec3(luma(c)), c, 1.0 + u_tSat);
+  c.r += u_tWarm*0.07; c.b -= u_tWarm*0.07; c.g += u_tWarm*0.01;
+  c = clamp(c, 0.0, 1.0);
+
+  // 시네마 레터박스 (2.35:1)
+  if (u_letterbox > 0.5) {
+    float bar = u_res.x > u_res.y ? (1.0 - u_res.x / 2.35 / u_res.y) * 0.5 : 0.09;
+    if (uv.y < bar || uv.y > 1.0 - bar) c = vec3(0.0);
+  }
+  gl_FragColor = vec4(c,1.0);
+}`;
+
+class Renderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
+    if (!gl) throw new Error('WebGL을 사용할 수 없어요');
+    this.gl = gl;
+    const sh = (type, srcCode) => {
+      const s = gl.createShader(type); gl.shaderSource(s, srcCode); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      return s;
+    };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    this.prog = prog;
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'a_pos');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    this.tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    this.u = {};
+    const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(prog, i); this.u[info.name] = gl.getUniformLocation(prog, info.name); }
+  }
+  // source: video/img/canvas, crop: [x,y,w,h] 0-1, params: filter params
+  render(source, { crop = [0,0,1,1], mirror = false, params = {}, amount = 1, tweak = {}, width, height, auto = { gain: 1, wb: [1,1,1] } }) {
+    const gl = this.gl;
+    if (this.canvas.width !== width || this.canvas.height !== height) { this.canvas.width = width; this.canvas.height = height; }
+    gl.viewport(0, 0, width, height);
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, source);
+    const p = Object.assign({}, DEFAULTS, params);
+    const f = (k, v) => this.u[k] && gl.uniform1f(this.u[k], v);
+    const v3 = (k, v) => this.u[k] && gl.uniform3fv(this.u[k], v);
+    gl.uniform4fv(this.u.u_crop, crop);
+    f('u_autoGain', auto.gain); v3('u_wb', auto.wb);
+    f('u_mirror', mirror ? 1 : 0);
+    f('u_aspect', width / height);
+    gl.uniform2f(this.u.u_res, width, height);
+    f('u_amount', amount);
+    f('u_tBright', tweak.bright || 0); f('u_tContrast', tweak.contrast || 0); f('u_tSat', tweak.sat || 0); f('u_tWarm', tweak.warm || 0);
+    f('u_time', performance.now() / 1000);
+    for (const k of ['exposure','contrast','saturation','temp','tint','fade','soft','glow','leak','vignette','grain','bw','highAmt','shadowAmt','letterbox','greenDeep','greenTeal']) f('u_' + k, p[k]);
+    v3('u_highTint', p.highTint); v3('u_shadowTint', p.shadowTint); v3('u_glowColor', p.glowColor);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+}
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const view = $('view'), video = $('video');
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+
+  let renderer;
+  try { renderer = new Renderer(view); }
+  catch (e) { $('startMsg').textContent = '이 기기에서는 필터를 실행할 수 없어요: ' + e.message; return; }
+  let capRenderer = null;
+
+  const state = {
+    mode: 'camera',          // 'camera' | 'photo'
+    facing: store.get('facing', 'environment'),
+    filter: FILTERS.find(f => f.id === store.get('filter', 'butter')) || FILTERS[1],
+    amount: 1,
+    timer: 0,
+    stream: null,
+    photo: null,             // 불러온 사진 (canvas)
+    busy: false,
+    autoOn: store.get('auto', '1') === '1',
+    auto: { gain: 1, wb: [1, 1, 1] },
+  };
+
+  // ── 자동 밝기/색 보정 ──
+  // 장면을 아주 작게 줄여 평균 밝기와 조명 색을 재고, 필터 전에 보정해서
+  // 실내/조명 아래에서도 야외와 비슷한 밝기·색으로 필터가 입혀지게 함
+  const probe = document.createElement('canvas'); probe.width = 32; probe.height = 32;
+  const pctx = probe.getContext('2d', { willReadFrequently: true });
+  function measure(source, sw, sh) {
+    pctx.drawImage(source, 0, 0, sw, sh, 0, 0, 32, 32);
+    const d = pctx.getImageData(0, 0, 32, 32).data;
+    let r = 0, g = 0, b = 0, n = 0; const lum = [];
+    for (let i = 0; i < d.length; i += 4) {
+      const R = d[i] / 255, G = d[i+1] / 255, B = d[i+2] / 255;
+      const L = 0.299*R + 0.587*G + 0.114*B; lum.push(L);
+      if (L > 0.06 && L < 0.94) { r += R; g += G; b += B; n++; } // 너무 어둡거나 날아간 곳은 색 측정에서 제외
+    }
+    lum.sort((x, y) => x - y);
+    const median = Math.max(lum[lum.length >> 1], 0.02);
+    // 밝기: 곡선 보정 후 중간 밝기가 0.45가 되도록 (밝은 부분은 곡선이 알아서 보호)
+    const T = 0.45;
+    let gain = T * (1 - median) / (median * (1 - T));
+    gain = Math.max(0.9, Math.min(gain, 6));
+    // 조명 색: 주황(전구색)/파랑 조명이 강할 때만 그 초과분을 줄임. 자연광은 거의 그대로 둠
+    let wb = [1, 1, 1];
+    if (n > 20) {
+      const rb = r / b;
+      let target = rb;
+      if (rb > 1.15) target = 1.15 + (rb - 1.15) * 0.3;
+      else if (rb < 0.85) target = 0.85 - (0.85 - rb) * 0.3;
+      const k = Math.sqrt(target / rb);
+      wb = [k, 1, 1 / k];
+      const gr = g / ((r * k + b / k) / 2);   // 형광등 초록끼
+      if (gr > 1.15) wb[1] = (1.15 + (gr - 1.15) * 0.3) / gr;
+      const norm = 3 / (wb[0] + wb[1] + wb[2]);
+      wb = wb.map(v => Math.max(0.6, Math.min(1.5, v * norm)));
+    }
+    return { gain, wb };
+  }
+  function smoothAuto(t, k) {
+    const s = state.auto;
+    s.gain += (t.gain - s.gain) * k;
+    s.wb = s.wb.map((v, i) => v + (t.wb[i] - v) * k);
+  }
+  const NO_AUTO = { gain: 1, wb: [1, 1, 1] };
+  const curAuto = () => state.autoOn ? state.auto : NO_AUTO;
+  $('autoBtn').classList.toggle('on', state.autoOn);
+  $('autoBtn').onclick = () => {
+    state.autoOn = !state.autoOn; store.set('auto', state.autoOn ? '1' : '0');
+    $('autoBtn').classList.toggle('on', state.autoOn);
+    $('autoBtn').textContent = state.autoOn ? '자동밝기 켬' : '자동밝기 끔';
+    if (state.mode === 'photo') drawPhoto();
+  };
+  $('autoBtn').textContent = state.autoOn ? '자동밝기 켬' : '자동밝기 끔';
+
+  // ── 필터 목록 ──
+  const list = $('filters');
+  let lastGroup = null;
+  FILTERS.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.id = f.id;
+    b.innerHTML = `<span class="sw" style="background:linear-gradient(135deg,${f.sw[0]},${f.sw[1]})"></span>${f.name}` +
+      `<span class="grp">${f.group !== lastGroup ? f.group : '&nbsp;'}</span>`;
+    lastGroup = f.group;
+    b.onclick = () => selectFilter(f);
+    list.appendChild(b);
+  });
+
+  let toastTimer;
+  function selectFilter(f, scroll = true) {
+    state.filter = f; store.set('filter', f.id);
+    list.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.id === f.id));
+    const el = list.querySelector(`[data-id="${f.id}"]`);
+    if (scroll && el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    const t = $('filterName'); t.textContent = (f.group ? f.group + ' · ' : '') + f.name; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1200);
+    if (state.mode === 'photo') drawPhoto();
+  }
+  selectFilter(state.filter, false);
+
+  // 화면 좌우로 밀어서 필터 바꾸기
+  let sx = null, sy = null;
+  $('stage').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  $('stage').addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      const i = FILTERS.indexOf(state.filter);
+      const n = (i + (dx < 0 ? 1 : -1) + FILTERS.length) % FILTERS.length;
+      selectFilter(FILTERS[n]);
+    }
+  });
+
+  // ── 세부 조정: 강도 / 밝기 / 대비 / 채도 / 색온도 ──
+  // 필터(기본값) 위에 덧입혀지는 조정. 강도 0~100(기본 100), 나머지 -100~100(기본 0)
+  const ADJ = { amount: [0, 100, 100], bright: [-100, 100, 0], contrast: [-100, 100, 0], sat: [-100, 100, 0], warm: [-100, 100, 0] };
+  const adj = {};
+  for (const k in ADJ) { const v = Number(store.get('adj_' + k, ADJ[k][2])); adj[k] = isFinite(v) ? v : ADJ[k][2]; }
+  let adjKey = 'amount';
+  const slider = $('slider');
+  function syncSlider() {
+    const [mn, mx] = ADJ[adjKey];
+    slider.min = mn; slider.max = mx; slider.value = adj[adjKey];
+    $('sliderVal').textContent = adj[adjKey] > 0 && adjKey !== 'amount' ? '+' + adj[adjKey] : adj[adjKey];
+    $('adjTabs').querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.k === adjKey);
+      b.classList.toggle('changed', adj[b.dataset.k] !== ADJ[b.dataset.k][2]);
+    });
+  }
+  function applyAdj() {
+    state.amount = adj.amount / 100;
+    state.tweak = { bright: adj.bright / 100, contrast: adj.contrast / 100, sat: adj.sat / 100, warm: adj.warm / 100 };
+    if (state.mode === 'photo') drawPhoto();
+  }
+  $('adjTabs').onclick = (e) => { const b = e.target.closest('button'); if (b) { adjKey = b.dataset.k; syncSlider(); } };
+  slider.oninput = () => { adj[adjKey] = Number(slider.value); store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
+  $('adjReset').onclick = () => { adj[adjKey] = ADJ[adjKey][2]; store.set('adj_' + adjKey, adj[adjKey]); syncSlider(); applyAdj(); };
+  syncSlider(); applyAdj();
+
+  // 타이머
+  const timers = [0, 3, 10];
+  $('timerBtn').onclick = () => {
+    state.timer = timers[(timers.indexOf(state.timer) + 1) % timers.length];
+    $('timerBtn').textContent = state.timer ? `타이머 ${state.timer}초` : '타이머 끔';
+    $('timerBtn').classList.toggle('on', !!state.timer);
+  };
+
+  // ── 카메라 ──
+  async function startCamera() {
+    stopCamera();
+    $('startMsg').textContent = '';
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: state.facing, width: { ideal: 2560 }, height: { ideal: 1920 } },
+      });
+      state.stream = stream;
+      video.srcObject = stream;
+      await video.play();
+      $('startScreen').hidden = true;
+      store.set('camOk', '1');
+      setMode('camera');
+    } catch (e) {
+      $('startScreen').hidden = false;
+      $('startMsg').textContent = e && e.name === 'NotAllowedError'
+        ? '카메라 권한이 필요해요. 설정 > Safari > 카메라에서 허용해 주세요.'
+        : '카메라를 열 수 없어요. (' + (e && e.message || e) + ')';
+    }
+  }
+  function stopCamera() {
+    if (state.stream) state.stream.getTracks().forEach(t => t.stop());
+    state.stream = null;
+  }
+  $('startBtn').onclick = startCamera;
+  $('flipBtn').onclick = () => {
+    state.facing = state.facing === 'user' ? 'environment' : 'user';
+    store.set('facing', state.facing);
+    startCamera();
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.mode === 'camera' && store.get('camOk') === '1') {
+      const live = state.stream && state.stream.getVideoTracks().some(t => t.readyState === 'live');
+      if (!live) startCamera(); else video.play().catch(() => {});
+    }
+  });
+
+  // 3:4 세로 비율로 자르기
+  function cameraCrop() {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const target = 3 / 4;
+    let w = vw, h = vh;
+    if (vw / vh > target) w = vh * target; else h = vw / target;
+    return { crop: [(1 - w / vw) / 2, (1 - h / vh) / 2, w / vw, h / vh], w: Math.round(w), h: Math.round(h) };
+  }
+  function fit(w, h, max) { const s = Math.min(1, max / Math.max(w, h)); return [Math.round(w * s), Math.round(h * s)]; }
+
+  let frame = 0;
+  function loop() {
+    if (state.mode === 'camera' && video.readyState >= 2 && video.videoWidth) {
+      const { crop, w, h } = cameraCrop();
+      if (state.autoOn && frame++ % 6 === 0) {
+        try { smoothAuto(measure(video, video.videoWidth, video.videoHeight), 0.25); } catch {}
+      }
+      const [pw, ph] = fit(w, h, 1280);
+      renderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function setMode(m) {
+    state.mode = m;
+    $('shutter').classList.toggle('import', m === 'photo');
+    $('shutter').setAttribute('aria-label', m === 'photo' ? '저장' : '촬영');
+    if (m === 'camera') { view.style.aspectRatio = '3/4'; }
+  }
+
+  // ── 사진 불러오기 ──
+  $('fileInput').onchange = async (e) => {
+    const file = e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    try {
+      const img = await loadImage(file);
+      const [w, h] = fit(img.naturalWidth || img.width, img.naturalHeight || img.height, 4096);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      state.photo = c;
+      const m = measure(c, w, h); state.auto = m;
+      stopCamera();
+      $('startScreen').hidden = true;
+      setMode('photo');
+      view.style.aspectRatio = `${w}/${h}`;
+      drawPhoto();
+    } catch (err) { alert('사진을 불러올 수 없어요'); }
+  };
+  function loadImage(file) {
+    return new Promise((res, rej) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { res(img); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+      img.onerror = rej; img.src = url;
+    });
+  }
+  function drawPhoto() {
+    const p = state.photo; if (!p) return;
+    const [pw, ph] = fit(p.width, p.height, 1600);
+    renderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: pw, height: ph, auto: curAuto() });
+  }
+
+  // ── 촬영/저장 ──
+  $('shutter').onclick = async () => {
+    if (state.busy) return;
+    if (state.mode === 'camera' && !state.stream) { startCamera(); return; }
+    state.busy = true;
+    try {
+      if (state.mode === 'camera' && state.timer) await countdown(state.timer);
+      flash();
+      const blob = await captureBlob();
+      showReview(blob);
+    } finally { state.busy = false; }
+  };
+  function countdown(n) {
+    return new Promise(res => {
+      const el = $('countdown');
+      const tick = () => { if (n === 0) { el.textContent = ''; res(); return; } el.textContent = n--; setTimeout(tick, 1000); };
+      tick();
+    });
+  }
+  function flash() { const f = $('flash'); f.classList.add('on'); requestAnimationFrame(() => setTimeout(() => f.classList.remove('on'), 60)); }
+
+  function captureBlob() {
+    if (!capRenderer) capRenderer = new Renderer(document.createElement('canvas'));
+    if (state.mode === 'camera') {
+      const { crop, w, h } = cameraCrop();
+      const [cw, ch] = fit(w, h, 4096);
+      capRenderer.render(video, { crop, mirror: state.facing === 'user', params: state.filter.p, amount: state.amount, tweak: state.tweak, width: cw, height: ch, auto: curAuto() });
+    } else {
+      const p = state.photo;
+      capRenderer.render(p, { params: state.filter.p, amount: state.amount, tweak: state.tweak, width: p.width, height: p.height, auto: curAuto() });
+    }
+    return new Promise(res => capRenderer.canvas.toBlob(res, 'image/jpeg', 0.93));
+  }
+
+  let currentBlob = null, currentUrl = null;
+  function showReview(blob) {
+    currentBlob = blob;
+    if (currentUrl) URL.revokeObjectURL(currentUrl);
+    currentUrl = URL.createObjectURL(blob);
+    $('reviewImg').src = currentUrl;
+    $('review').hidden = false;
+  }
+  $('retakeBtn').onclick = () => { $('review').hidden = true; };
+  $('saveBtn').onclick = async () => {
+    if (!currentBlob) return;
+    const d = new Date(), pad = (x) => String(x).padStart(2, '0');
+    const name = `ppoyong_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.jpg`;
+    const file = new File([currentBlob], name, { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); } catch (e) { /* 취소 */ }
+    } else {
+      const a = document.createElement('a'); a.href = currentUrl; a.download = name; a.click();
+    }
+  };
+
+  // 시작
+  if (store.get('camOk') === '1') startCamera();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
 </body>
 </html>
