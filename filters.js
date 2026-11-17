@@ -5,19 +5,19 @@ const FILTERS = [
 
   // ── 뽀용 ──
   { id:'butter', name:'버터', group:'뽀용', sw:['#fff1c9','#f3c98b'],
-    p:{ exposure:.14, contrast:.9, saturation:.98, temp:.24, tint:.01, fade:.06, soft:.3, glow:.4,
+    p:{ exposure:.14, contrast:.97, saturation:.98, temp:.24, tint:.01, fade:.03, glow:.2,
         highTint:[1.0,.93,.7], highAmt:.3, shadowTint:[.66,.52,.4], shadowAmt:.14, vignette:.08, grain:.015 } },
   { id:'sunny', name:'햇살', group:'뽀용', sw:['#fff6d6','#ffb878'],
-    p:{ exposure:.1, contrast:.94, saturation:1.0, temp:.2, tint:.01, fade:.05, soft:.18, glow:.55, leak:.5,
+    p:{ exposure:.1, contrast:1.0, saturation:1.0, temp:.2, tint:.01, fade:.025, glow:.275, leak:.5,
         highTint:[1.0,.9,.7], highAmt:.2, vignette:.1, grain:.015 } },
   { id:'wedding', name:'웨딩', group:'뽀용', sw:['#ffffff','#f6dcd6'],
-    p:{ exposure:.26, contrast:.82, saturation:.8, temp:.04, tint:.05, fade:.1, soft:.38, glow:.3,
+    p:{ exposure:.26, contrast:.9, saturation:.8, temp:.04, tint:.05, fade:.05, glow:.15,
         highTint:[1.0,.96,.94], highAmt:.2, shadowTint:[.6,.52,.55], shadowAmt:.15 } },
   { id:'peach', name:'피치', group:'뽀용', sw:['#ffe3d3','#f7a48f'],
-    p:{ exposure:.12, contrast:.9, saturation:.95, temp:.09, tint:.07, fade:.06, soft:.22, glow:.3,
+    p:{ exposure:.12, contrast:.96, saturation:.95, temp:.09, tint:.07, fade:.03, glow:.15,
         highTint:[1.0,.86,.8], highAmt:.25, vignette:.06 } },
   { id:'milk', name:'우유', group:'뽀용', sw:['#fbf8f2','#e2dbd0'],
-    p:{ exposure:.3, contrast:.78, saturation:.68, temp:.03, fade:.13, soft:.42, glow:.2,
+    p:{ exposure:.3, contrast:.88, saturation:.68, temp:.03, fade:.065, glow:.1,
         highTint:[1,.98,.95], highAmt:.15 } },
 
   // ── 리코 GR 스타일 ──
@@ -25,7 +25,7 @@ const FILTERS = [
     p:{ exposure:.02, contrast:1.25, saturation:1.18, temp:.1, tint:-.01, shadowTint:[.2,.42,.46], shadowAmt:.25,
         highTint:[1,.88,.66], highAmt:.15, vignette:.38, grain:.035 } },
   { id:'nega', name:'네거티브', group:'리코', sw:['#d9cfae','#5d7a78'],
-    p:{ exposure:.06, contrast:.88, saturation:.82, temp:-.02, fade:.1, shadowTint:[.32,.5,.52], shadowAmt:.3,
+    p:{ exposure:.06, contrast:.88, saturation:.82, temp:-.02, fade:.05, shadowTint:[.32,.5,.52], shadowAmt:.3,
         highTint:[1,.95,.8], highAmt:.2, vignette:.2, grain:.04 } },
   { id:'hicon', name:'하이콘 흑백', group:'리코', sw:['#eeeeee','#111111'],
     p:{ bw:1, exposure:.02, contrast:1.55, vignette:.4, grain:.09 } },
@@ -33,27 +33,27 @@ const FILTERS = [
     p:{ exposure:.03, contrast:1.35, saturation:.42, temp:.02, vignette:.3, grain:.05 } },
 
   { id:'deep', name:'진득', group:'리코', sw:['#c9733e','#3a2a22'],
-    p:{ exposure:.02, contrast:1.18, saturation:1.22, temp:.12, tint:.01, fade:.03,
-        shadowTint:[.36,.24,.2], shadowAmt:.22, highTint:[1,.86,.62], highAmt:.22, vignette:.3, grain:.03, glow:.12, glowColor:[1,.6,.4] } },
+    p:{ exposure:.02, contrast:1.18, saturation:1.22, temp:.12, tint:.01, fade:.015,
+        shadowTint:[.36,.24,.2], shadowAmt:.22, highTint:[1,.86,.62], highAmt:.22, vignette:.3, grain:.03, glow:.06, glowColor:[1,.6,.4] } },
 
   // ── 영화 필름 ──
   { id:'cine', name:'시네마', group:'필름', sw:['#f0a35e','#1f4c57'],
     p:{ contrast:1.12, saturation:1.05, temp:.04, shadowTint:[.12,.4,.46], shadowAmt:.42,
-        highTint:[1,.76,.5], highAmt:.28, fade:.04, vignette:.35, grain:.035, glow:.15, glowColor:[1,.7,.5], letterbox:1 } },
+        highTint:[1,.76,.5], highAmt:.28, fade:.02, vignette:.35, grain:.035, glow:.075, glowColor:[1,.7,.5], letterbox:1 } },
   { id:'fujimovie', name:'후지 무비', group:'필름', sw:['#8e9a8f','#22302a'],
-    p:{ exposure:-.14, contrast:1.16, saturation:.8, temp:-.03, tint:-.05, fade:.02,
+    p:{ exposure:-.14, contrast:1.16, saturation:.8, temp:-.03, tint:-.05, fade:.01,
         shadowTint:[.18,.26,.22], shadowAmt:.35, highTint:[.95,1.0,.95], highAmt:.15,
         greenDeep:.6, greenTeal:.25, vignette:.25, grain:.035 } },
   { id:'kodak', name:'코닥 무비', group:'필름', sw:['#f5c582','#7a3d2b'],
-    p:{ exposure:.03, contrast:1.06, saturation:1.08, temp:.13, tint:.02, fade:.06,
+    p:{ exposure:.03, contrast:1.06, saturation:1.08, temp:.13, tint:.02, fade:.03,
         shadowTint:[.45,.32,.28], shadowAmt:.15, highTint:[1,.88,.68], highAmt:.2,
-        glow:.45, glowColor:[1,.35,.2], vignette:.28, grain:.05 } },
+        glow:.225, glowColor:[1,.35,.2], vignette:.28, grain:.05 } },
   { id:'fuji', name:'초록 필름', group:'필름', sw:['#cfdcb8','#3e5a4e'],
-    p:{ exposure:.05, contrast:.95, saturation:.88, temp:-.04, tint:-.04, fade:.08,
+    p:{ exposure:.05, contrast:.95, saturation:.88, temp:-.04, tint:-.04, fade:.04,
         shadowTint:[.3,.5,.42], shadowAmt:.25, highTint:[.98,.97,.88], highAmt:.15, vignette:.22, grain:.045 } },
   { id:'night', name:'밤 영화', group:'필름', sw:['#3c6e8c','#d27a4b'],
     p:{ exposure:.04, contrast:1.18, saturation:1.1, temp:-.08, shadowTint:[.1,.32,.5], shadowAmt:.45,
-        highTint:[1,.72,.5], highAmt:.3, glow:.4, glowColor:[1,.55,.35], vignette:.42, grain:.06, letterbox:1 } },
+        highTint:[1,.72,.5], highAmt:.3, glow:.2, glowColor:[1,.55,.35], vignette:.42, grain:.06, letterbox:1 } },
 ];
 
 const DEFAULTS = { exposure:0, contrast:1, saturation:1, temp:0, tint:0, fade:0, soft:0, glow:0, glowColor:[1,.95,.85],
@@ -100,12 +100,11 @@ void main(){
       vec3 s1 = tex(uv + d*r);
       vec3 s2 = tex(uv + d*r*2.4);
       blur += s1 + s2;
-      bright += max(s1-0.6,0.0) + max(s2-0.55,0.0)*0.8;
+      bright += max(s1-0.8,0.0) + max(s2-0.78,0.0)*0.8;
     }
     blur /= 24.0; bright /= 12.0;
     // 밝은 부분만 은은하게 번지는 프로미스트 느낌 (어두운 곳은 선명하게 유지)
     c += max(blur - c, 0.0) * u_soft * 1.3;
-    c = mix(c, blur, u_soft * 0.12);
   }
 
   // 노출, 색온도, 틴트
@@ -142,7 +141,7 @@ void main(){
   c = c*(1.0-u_fade) + u_fade*vec3(0.98,0.95,0.92)*0.55;
 
   // 빛번짐
-  c = 1.0 - (1.0-c)*(1.0 - bright*u_glowColor*u_glow*1.6);
+  c = 1.0 - (1.0-c)*(1.0 - bright*u_glowColor*u_glow*3.0);
 
   // 햇살 라이트릭
   vec2 lp = uv - vec2(0.05, -0.05);
