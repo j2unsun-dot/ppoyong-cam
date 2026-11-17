@@ -2,7 +2,7 @@
 
 아이폰 홈 화면에 추가해서 쓰는 필터 카메라 웹앱.
 
-**👉 앱 열기: https://raw.githack.com/j2unsun-dot/ppoyong-cam/main/**
+**👉 앱 열기: https://j2unsun-dot.github.io/ppoyong-cam/**
 
 <img src="icons/share-qr.png" width="260" alt="뽀용캠 QR 코드">
 
